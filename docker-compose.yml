@@ -1,4 +1,3 @@
-version: "2"
 services:
   kafdrop:
     image: obsidiandynamics/kafdrop
@@ -25,3 +24,9 @@ services:
       KAFKA_RESTART_ATTEMPTS: "10"
       KAFKA_RESTART_DELAY: "5"
       ZOOKEEPER_AUTOPURGE_PURGE_INTERVAL: "0"
+  cassandra:
+    image: cassandra:latest
+    ports:
+      - "9042:9042"
+    environment:
+      - CASSANDRA_CLUSTER_NAME=SDTD Cluster

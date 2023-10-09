@@ -15,8 +15,9 @@ docker-compose up -d
 Create a virtual-environment & activate it
 
 ```
-python -m venv env
-source env/bin/activate
+python -m venv sdtd-kafka
+source sdtd-kafka/bin/activate
+pip install -r requirements.txt # Install dependencies
 ```
 
 Consumer:
@@ -28,13 +29,13 @@ python consumer.py
 In another terminal, set again the environment
 
 ```
-source env/bin/activate
+source sdtd-kafka/bin/activate
 ```
 
 Producer:
 
 ```
-python consumer.py
+python producer.py
 ```
 
 Kafdrop link: `localhost:9000`
