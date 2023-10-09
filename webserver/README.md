@@ -2,10 +2,9 @@
 
 FastAPI webserver for the SDTD project. 
 
-## Run in a container
+## Environment variables
 ```bash
-docker build -t sdtd-webserver-image . # Build image
-docker run -d --name sdtd-webserver-container -p 8000:80 sdtd-webserver-image # Run container
+cp .env.example .env # Copy example environment variables
 ```
 
 ## Run locally
@@ -19,6 +18,12 @@ Install dependencies and run the server :
 ```bash
 pip install -r requirements.txt # Install dependencies
 uvicorn app.main:app --reload # Run server
+```
+
+## Run in a container
+```bash
+docker build -t sdtd-webserver-image . # Build image
+docker run -d --name sdtd-webserver-container -p 8000:80 sdtd-webserver-image # Run container
 ```
 
 ## Docs
