@@ -15,6 +15,10 @@ services:
     ports:
       - "2181:2181"
       - "9092:9092"
+    ulimits:
+      nofile:
+        soft: "65536"
+        hard: "65536"
     environment:
       KAFKA_LISTENERS: "INTERNAL://:29092,EXTERNAL://:9092"
       KAFKA_ADVERTISED_LISTENERS: "INTERNAL://kafka:29092,EXTERNAL://localhost:9092"
