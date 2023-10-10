@@ -23,7 +23,7 @@ pip install -r requirements.txt # Install dependencies
 Consumer:
 
 ```
-python consumer.py
+python consumer/consumer.py
 ```
 
 In another terminal, set again the environment
@@ -35,7 +35,7 @@ source sdtd-kafka/bin/activate
 Producer:
 
 ```
-python producer.py
+python producer/producer.py
 ```
 
 Kafdrop link: `localhost:9000`
