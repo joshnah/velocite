@@ -30,12 +30,11 @@ def read_root():
 
 
 # Get Cassandra cluster name and listen address
-@app.get("/cluster")
+@app.get("/all")
 def read_cluster():
-    row = session.execute(
-        "SELECT cluster_name, listen_address FROM system.local").one()
+    rows = session.execute(
+        "SELECT * FROM station.stations").all()
     return JSONResponse(
         status_code=status.HTTP_200_OK,
-        content={"cluster_name": row.cluster_name,
-                 "listen_address": row.listen_address},
+        content=rows
     )
