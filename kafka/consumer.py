@@ -1,7 +1,10 @@
 import json
 from kafka import KafkaConsumer
 import threading
+from cassandra.cluster import Cluster
 
+cluster = Cluster(['127.0.0.1'], port=9042)
+session = cluster.connect()
 
 SERVER_ADDRESS = '127.0.0.1:9092'
 CONSUMER_GROUP_ID = 'group1'
