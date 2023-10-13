@@ -1,9 +1,7 @@
 import json
-import time
 from kafka import KafkaProducer
 import requests
 
-TOPIC_NAME = "velo"
 SERVER_ADDRESS = '127.0.0.1:9092'
 
 
@@ -29,7 +27,7 @@ def extract_from_opendata(city):
     return results
 
 def extract_from_gouv(city):
-    #TODO
+    #TODO get every pages
     results = []
     results = requests.get(list_apis[city])
     return results
