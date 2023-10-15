@@ -2,9 +2,9 @@ import json
 from kafka import KafkaConsumer
 
 
-TOPIC_NAME = 'velo'
-SERVER_ADDRESS = '127.0.0.1:9092'
-CONSUMER_GROUP_ID = 'group1'
+TOPIC_NAME = 'parsed_data'
+SERVER_ADDRESS = 'localhost:9092'
+CONSUMER_GROUP_ID = 'end_consumer'
 
 #defining consumer 
 consumer = KafkaConsumer(
