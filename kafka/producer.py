@@ -1,6 +1,7 @@
 import json
 from kafka import KafkaProducer
 import requests
+from datetime import datetime
 
 SERVER_ADDRESS = '127.0.0.1:9092'
 
@@ -36,17 +37,41 @@ def extract_from_opendata(city):
             offset += 100
         else:
             break
+    for station in results:
+        # TODO translate key (lille for instance)
+        station["lat"] = station["coordonnees_geo"]["lat"]
+        station["lon"] = station["coordonnees_geo"]["lon"]
+        station["num_bikes_available"] = station["numbikesavailable"]
+        station["num_docks_available"] = station["numdocksavailable"]
+        station["station_id"] = station["stationcode"]
+        station["last_reported"] = datetime.strptime(station["duedate"][:-6], "%Y-%m-%dT%H:%M:%S").timestamp()
     return results
 
 def extract_from_gouv(city):
     try:
-        results = requests.get(list_apis[city]).json()
+        stations_informations = requests.get(list_apis[city]).json()
     except Exception as e:
         print(e)
-        print("Error while calling API from gouv")
+        print("Error while calling API informations from gouv")
         exit(1)
-    results = results["data"]["stations"]
-    return results
+    stations_informations = stations_informations["data"]["stations"]
+    try:
+        stations_status = requests.get(list_apis[city].replace("station_information","station_status")).json()
+    except Exception as e:
+        print(e)
+        print("Error while calling API status from gouv")
+        exit(1)
+    stations_status = stations_status["data"]["stations"]
+    stations_dict = {}
+    for station in stations_informations:
+        stations_dict[station["station_id"]] = station
+    for station in stations_status:
+        informations = stations_dict[station["station_id"]]
+        station["name"] = informations["name"]
+        station["lat"] = informations["lat"]
+        station["lon"] = informations["lon"]
+        station["capactiy"] = informations["capacity"]
+    return stations_status
 
 if __name__ == "__main__":
     """
