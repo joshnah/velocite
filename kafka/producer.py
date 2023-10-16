@@ -37,14 +37,27 @@ def extract_from_opendata(city):
             offset += 100
         else:
             break
-    for station in results:
-        # TODO translate key (lille for instance)
-        station["lat"] = station["coordonnees_geo"]["lat"]
-        station["lon"] = station["coordonnees_geo"]["lon"]
-        station["num_bikes_available"] = station["numbikesavailable"]
-        station["num_docks_available"] = station["numdocksavailable"]
-        station["station_id"] = station["stationcode"]
-        station["last_reported"] = datetime.strptime(station["duedate"][:-6], "%Y-%m-%dT%H:%M:%S").timestamp()
+    match city:
+        case "lille":
+            for station in results:
+                # TODO translate key (lille for instance)
+                station["name"] = station["nom"]
+                station["capacity"] = station["nbplacesdispo"]
+                station["lat"] = station["geo"]["lat"]
+                station["lon"] = station["geo"]["lon"]
+                station["num_bikes_available"] = station["nbvelosdispo"]
+                station["num_docks_available"] = station["nbplacesdispo"] - station["nbvelosdispo"]
+                station["station_id"] = station["libelle"]
+                station["last_reported"] = datetime.strptime(station["datemiseajour"][:-6], "%Y-%m-%dT%H:%M:%S").timestamp()
+        case default:
+            for station in results:
+                # TODO translate key (lille for instance)
+                station["lat"] = station["coordonnees_geo"]["lat"]
+                station["lon"] = station["coordonnees_geo"]["lon"]
+                station["num_bikes_available"] = station["numbikesavailable"]
+                station["num_docks_available"] = station["numdocksavailable"]
+                station["station_id"] = station["stationcode"]
+                station["last_reported"] = datetime.strptime(station["duedate"][:-6], "%Y-%m-%dT%H:%M:%S").timestamp()
     return results
 
 def extract_from_gouv(city):
