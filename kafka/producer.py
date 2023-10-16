@@ -29,9 +29,10 @@ def extract_from_opendata(city):
             response = requests.get(url).json()
         except Exception as e:
             print(e)
+            print("Error while calling API from opendata")
             exit(1)
-        if(len(response.results)>0):
-            results = results + response.results
+        if(len(response["results"])>0):
+            results = results + response["results"]
             offset += 100
         else:
             break
@@ -39,10 +40,12 @@ def extract_from_opendata(city):
 
 def extract_from_gouv(city):
     try:
-        results = requests.get(list_apis[city]).json().data.stations
+        results = requests.get(list_apis[city]).json()
     except Exception as e:
         print(e)
+        print("Error while calling API from gouv")
         exit(1)
+    results = results["data"]["stations"]
     return results
 
 if __name__ == "__main__":
@@ -54,9 +57,11 @@ if __name__ == "__main__":
 
     try:
         for city,url in list_apis.items():
-            if(url.find(".json") != -1):
+            if(url.find(".json") == -1):
+                print("extract from " + city + " opendata")
                 result = extract_from_opendata(city)
             else:
+                print("extract from " + city + " gouv")
                 result = extract_from_gouv(city)
             producer.send(city, result)
     except KeyboardInterrupt:
