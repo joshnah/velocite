@@ -49,6 +49,16 @@ def extract_from_opendata(city):
                 station["num_docks_available"] = station["nbplacesdispo"] - station["nbvelosdispo"]
                 station["station_id"] = station["libelle"]
                 station["last_reported"] = datetime.strptime(station["datemiseajour"][:-6], "%Y-%m-%dT%H:%M:%S").timestamp()
+        case "strasbourg":
+            for station in results:
+                # TODO translate key (lille for instance)
+                station["name"] = station["na"]
+                station["capacity"] = station["to"]
+                station["lat"] = station["la"]
+                station["lon"] = station["lg"]
+                station["num_bikes_available"] = station["av"]
+                # station["num_docks_available"] = station["numdocksavailable"]
+                station["station_id"] = station["id"]
         case default:
             for station in results:
                 # TODO translate key (lille for instance)
