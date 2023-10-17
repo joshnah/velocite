@@ -8,6 +8,19 @@ session = cluster.connect()
 
 SERVER_ADDRESS = '127.0.0.1:9092'
 CONSUMER_GROUP_ID = 'group1'
+"""
+format of the message: {
+            [{"capacity":32,
+            "lat":44.83803,
+            "lon":-0.58437,
+            "name":"Meriadeck",
+            "station_id":"1",
+            num_bikes_available":13,
+            last_reported":1697465565
+            },...
+            ]
+    }
+"""
 
 
 consumers = {"paris":"",
@@ -27,7 +40,6 @@ for city in consumers:
 )
     
 def insert_in_db(city):
-    #TODO really insert in cassandradb
     consumer = KafkaConsumer(
         city,
         bootstrap_servers=SERVER_ADDRESS,
@@ -35,7 +47,14 @@ def insert_in_db(city):
     )
     try:
         for msg in consumer:
-            print(f"{city}: {json.loads(msg.value)}")
+            results = json.loads(msg.value)
+            session.execute("USE station")
+            for station in results:
+                try:
+                    session.execute(f"INSERT INTO stations (city, station_id, bikes, capacity, updated_at) VALUES ('{city}', '{station['station_id']}', {station['num_bikes_available']}, {station['capacity']}, {station['last_reported']});")
+                except Exception as e:
+                    print(e)
+                    print(f"Error while inserting {station['station_id']} in DB")
     except KeyboardInterrupt:
         print(f"{city}: -quit")
 

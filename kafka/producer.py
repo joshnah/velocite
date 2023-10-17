@@ -14,7 +14,7 @@ producer = KafkaProducer(
 list_apis = {"paris":"https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/velib-disponibilite-en-temps-reel/records",
              "lille":"https://opendata.lillemetropole.fr/api/explore/v2.1/catalog/datasets/vlille-realtime/records",
              "lyon":"https://transport.data.gouv.fr/gbfs/lyon/station_information.json",
-             "strasbourg":"https://data.strasbourg.eu/api/explore/v2.1/catalog/datasets/stations-velhop/records",
+             #"strasbourg":"https://data.strasbourg.eu/api/explore/v2.1/catalog/datasets/stations-velhop/records",
              "toulouse":"https://data.toulouse-metropole.fr/api/explore/v2.1/catalog/datasets/api-velo-toulouse-temps-reel/records",
              "bordeaux":"https://transport.data.gouv.fr/gbfs/vcub/station_information.json",
              "nancy":"https://transport.data.gouv.fr/gbfs/nancy/station_information.json",
@@ -40,32 +40,34 @@ def extract_from_opendata(city):
     match city:
         case "lille":
             for station in results:
-                # TODO translate key (lille for instance)
+                station["station_id"] = station["libelle"]
                 station["name"] = station["nom"]
                 station["capacity"] = station["nbplacesdispo"]
                 station["lat"] = station["geo"]["lat"]
                 station["lon"] = station["geo"]["lon"]
                 station["num_bikes_available"] = station["nbvelosdispo"]
-                station["num_docks_available"] = station["nbplacesdispo"] - station["nbvelosdispo"]
-                station["station_id"] = station["libelle"]
                 station["last_reported"] = datetime.strptime(station["datemiseajour"][:-6], "%Y-%m-%dT%H:%M:%S").timestamp()
         case "strasbourg":
             for station in results:
-                # TODO translate key (lille for instance)
                 station["name"] = station["na"]
                 station["capacity"] = station["to"]
                 station["lat"] = station["la"]
                 station["lon"] = station["lg"]
                 station["num_bikes_available"] = station["av"]
-                # station["num_docks_available"] = station["numdocksavailable"]
                 station["station_id"] = station["id"]
+        case "toulouse":
+            for station in results:
+                station["station_id"] = station["number"]
+                station["capacity"] = station["bike_stands"]
+                station["lat"] = station["position"]["lat"]
+                station["lon"] = station["position"]["lon"]
+                station["num_bikes_available"] = station["available_bikes"]
+                station["last_reported"] = datetime.strptime(station["last_update"][:-6], "%Y-%m-%dT%H:%M:%S").timestamp()
         case default:
             for station in results:
-                # TODO translate key (lille for instance)
                 station["lat"] = station["coordonnees_geo"]["lat"]
                 station["lon"] = station["coordonnees_geo"]["lon"]
                 station["num_bikes_available"] = station["numbikesavailable"]
-                station["num_docks_available"] = station["numdocksavailable"]
                 station["station_id"] = station["stationcode"]
                 station["last_reported"] = datetime.strptime(station["duedate"][:-6], "%Y-%m-%dT%H:%M:%S").timestamp()
     return results
