@@ -7,9 +7,14 @@ build webserver:
   services:
     - docker:20.10.16-dind
   variables:
-    IMAGE_TAG: $CI_REGISTRY_IMAGE/webserver:latest
+    IMAGE_NAME: $CI_REGISTRY_IMAGE/webserver
+    IMAGE_TAG: $IMAGE_NAME:$CI_COMMIT_SHORT_SHA
+    IMAGE_TAG_LATEST: $IMAGE_NAME:latest
   script:
     - cd webserver
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build -t $IMAGE_TAG .
-    - docker push $IMAGE_TAG
+    - docker build --cache-from $IMAGE_TAG_LATEST -t $IMAGE_TAG .
+    - IMAGE_ID=$(docker images | grep $IMAGE_NAME | awk '{print $3}')
+    - docker tag $IMAGE_ID $IMAGE_TAG_LATEST
+    - docker push $IMAGE_TAG_LATEST
+    - docker push $IMAGE_TAG  
