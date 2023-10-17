@@ -1,0 +1,28 @@
+stages:
+  - build
+
+build kafka producer:
+  image: docker:20.10.16
+  stage: build
+  services:
+    - docker:20.10.16-dind
+  variables:
+    IMAGE_TAG: $CI_REGISTRY_IMAGE/producer:latest
+  script:
+    - cd kafka
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker build -f Dockerfile_producer -t $IMAGE_TAG .
+    - docker push $IMAGE_TAG
+
+build kafka consumer:
+  image: docker:20.10.16
+  stage: build
+  services:
+    - docker:20.10.16-dind
+  variables:
+    IMAGE_TAG: $CI_REGISTRY_IMAGE/consumer:latest
+  script:
+    - cd kafka
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker build -f Dockerfile_consumer -t $IMAGE_TAG .
+    - docker push $IMAGE_TAG

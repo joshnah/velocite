@@ -1,3 +1,6 @@
+stages:
+  - build
+
 build webserver:
   image: docker:20.10.16
   stage: build

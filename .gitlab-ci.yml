@@ -3,3 +3,4 @@ stages:
 
 include:
   - local: '/webserver/.gitlab-ci.webserver.yml'
+  - local: '/kafka/.gitlab-ci.kafka.yml'
