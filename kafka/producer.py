@@ -95,7 +95,7 @@ def extract_from_gouv(city):
         station["name"] = informations["name"]
         station["lat"] = informations["lat"]
         station["lon"] = informations["lon"]
-        station["capactiy"] = informations["capacity"]
+        station["capacity"] = informations["capacity"]
     return stations_status
 
 if __name__ == "__main__":
