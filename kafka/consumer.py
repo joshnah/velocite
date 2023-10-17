@@ -51,7 +51,7 @@ def insert_in_db(city):
             session.execute("USE station")
             for station in results:
                 try:
-                    session.execute(f"INSERT INTO stations (city, station_id, bikes, capacity, updated_at) VALUES ('{city}', '{station['station_id']}', {station['num_bikes_available']}, {station['capacity']}, toTimestamp(mintimeuuid({int(station['last_reported'])})));")
+                    session.execute(f"INSERT INTO stations (city, station_id, bikes, capacity, updated_at) VALUES ('{city}', '{station['station_id']}', {station['num_bikes_available']}, {station['capacity']}, {1000*int(station['last_reported'])});")
                 except Exception as e:
                     print(e)
                     print(f"Error while inserting {station} in DB")
