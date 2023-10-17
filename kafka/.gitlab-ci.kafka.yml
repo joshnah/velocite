@@ -2,17 +2,14 @@ stages:
   - build
 
 build kafka producer:
-  image: docker:20.10.16
+  extends: .build
   stage: build
-  services:
-    - docker:20.10.16-dind
   variables:
     IMAGE_NAME: $CI_REGISTRY_IMAGE/producer
     IMAGE_TAG: $IMAGE_NAME:$CI_COMMIT_SHORT_SHA
     IMAGE_TAG_LATEST: $IMAGE_NAME:latest
   script:
     - cd kafka
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker build --cache-from $IMAGE_TAG_LATEST -f Dockerfile_producer -t $IMAGE_TAG .
     - IMAGE_ID=$(docker images | grep $IMAGE_NAME | awk '{print $3}')
     - docker tag $IMAGE_ID $IMAGE_TAG_LATEST
@@ -20,17 +17,14 @@ build kafka producer:
     - docker push $IMAGE_TAG
 
 build kafka consumer:
-  image: docker:20.10.16
+  extends: .build
   stage: build
-  services:
-    - docker:20.10.16-dind
   variables:
     IMAGE_NAME: $CI_REGISTRY_IMAGE/consumer
     IMAGE_TAG: $IMAGE_NAME:$CI_COMMIT_SHORT_SHA
     IMAGE_TAG_LATEST: $IMAGE_NAME:latest
   script:
     - cd kafka
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker build --cache-from $IMAGE_TAG_LATEST -f Dockerfile_consumer -t $IMAGE_TAG .
     - IMAGE_ID=$(docker images | grep $IMAGE_NAME | awk '{print $3}')
     - docker tag $IMAGE_ID $IMAGE_TAG_LATEST
