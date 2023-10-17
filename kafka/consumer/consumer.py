@@ -1,10 +1,13 @@
 import json
 from kafka import KafkaConsumer
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
-TOPIC_NAME = 'velo'
-SERVER_ADDRESS = '127.0.0.1:9092'
-CONSUMER_GROUP_ID = 'group1'
+TOPIC_NAME = os.getenv("TOPIC_NAME")
+SERVER_ADDRESS = os.getenv("SERVER_ADDRESS")
+CONSUMER_GROUP_ID = os.getenv("CONSUMER_GROUP_ID")
 
 #defining consumer 
 consumer = KafkaConsumer(

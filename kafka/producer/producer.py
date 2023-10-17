@@ -3,9 +3,13 @@ import time
 from kafka import KafkaProducer
 import requests
 
-TOPIC_NAME = "velo"
-SERVER_ADDRESS = '127.0.0.1:9092'
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
+
+TOPIC_NAME = os.getenv("TOPIC_NAME")
+SERVER_ADDRESS = os.getenv("SERVER_ADDRESS")
 
 
 producer = KafkaProducer(
