@@ -14,4 +14,6 @@ build webserver:
     - IMAGE_ID=$(docker images | grep $IMAGE_NAME | awk '{print $3}')
     - docker tag $IMAGE_ID $IMAGE_TAG_LATEST
     - docker push $IMAGE_TAG_LATEST
-    - docker push $IMAGE_TAG  
+    - docker push $IMAGE_TAG
+  only:
+    - main
