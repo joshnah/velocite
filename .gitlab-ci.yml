@@ -1,0 +1,13 @@
+stages:
+  - build
+
+.build:
+  image: docker:20.10.16
+  services:
+    - docker:20.10.16-dind
+  before_script:
+    - echo -n $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
+
+include:
+  - local: '/webserver/.gitlab-ci.webserver.yml'
+  - local: '/kafka/.gitlab-ci.kafka.yml'
