@@ -34,3 +34,33 @@ services:
       - "9042:9042"
     environment:
       - CASSANDRA_CLUSTER_NAME=SDTD Cluster
+    hostname: cassandra
+    healthcheck:
+      test: ["CMD", "cqlsh"]
+      interval: 15s
+      timeout: 10s
+      start_period: 30s
+  prometheus:
+    image: prom/prometheus
+    hostname: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+  grafana:
+    image: grafana/grafana-enterprise
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+     - '3000:3000'
+  webserver:
+    hostname: webserver
+    build: ./webserver
+    ports:
+      - "8000:80"
+    depends_on:
+      cassandra:
+        condition: service_healthy
+        restart: true
+ 
+
