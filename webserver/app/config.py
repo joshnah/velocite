@@ -5,4 +5,4 @@ class Settings(BaseSettings):
     cassandra_host: str
     cassandra_port: int
 
-    model_config = SettingsConfigDict(env_file=".env")
+    model_config = SettingsConfigDict(env_file="app/.env")
