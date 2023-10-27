@@ -1,14 +1,4 @@
 services:
-  kafdrop:
-    image: obsidiandynamics/kafdrop
-    restart: "no"
-    ports:
-      - "9000:9000"
-    environment:
-      KAFKA_BROKERCONNECT: "kafka:29092"
-      JVM_OPTS: "-Xms16M -Xmx48M -Xss180K -XX:-TieredCompilation -XX:+UseStringDeduplication -noverify"
-    depends_on:
-      - "kafka"
   kafka:
     image: obsidiandynamics/kafka
     restart: "no"
@@ -29,8 +19,27 @@ services:
       KAFKA_RESTART_DELAY: "5"
       ZOOKEEPER_AUTOPURGE_PURGE_INTERVAL: "0"
   cassandra:
-    image: cassandra:latest
-    ports:
-      - "9042:9042"
-    environment:
-      - CASSANDRA_CLUSTER_NAME=SDTD Cluster
+      image: cassandra:5.0
+      ports:
+        - "9042:9042"
+      environment:
+        - CASSANDRA_CLUSTER_NAME=SDTD Cluster
+      healthcheck:
+          test: ["CMD", "cqlsh", "-u cassandra", "-p cassandra" ,"-e describe keyspaces"]
+          interval: 15s
+          timeout: 10s
+          retries: 10
+  cassandra-load-keyspace:
+      container_name: cassandra-load-keyspace
+      image: cassandra:5.0
+      environment:
+        - CASSANDRA_CLUSTER_NAME=SDTD Cluster
+      depends_on:
+        cassandra:
+          condition: service_healthy
+      volumes:
+        - ./db/cassandra_schema.cql:/schema.cql
+      command: /bin/bash -c "echo loading cassandra keyspace && cqlsh cassandra -f /schema.cql"
+
+
+    
