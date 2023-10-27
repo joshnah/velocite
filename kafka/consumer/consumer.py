@@ -13,13 +13,12 @@ load_dotenv()
 
 RESULT_TOPIC = os.getenv("RESULT_TOPIC")
 SERVER_ADDRESS = os.getenv("SERVER_ADDRESS")
-CONSUMER_GROUP_ID = 'consumer'
 
 # defining consumer
 consumer = KafkaConsumer(
     RESULT_TOPIC,
     bootstrap_servers=SERVER_ADDRESS,
-    group_id=CONSUMER_GROUP_ID
+    group_id='consumer'
 )
 
 

@@ -25,7 +25,6 @@ list_apis = {"paris": "https://opendata.paris.fr/api/explore/v2.1/catalog/datase
            "amiens": "https://transport.data.gouv.fr/gbfs/amiens/station_information.json",
            "besancon": "https://transport.data.gouv.fr/gbfs/besancon/station_information.json"}
 
-
 producer = KafkaProducer(
     bootstrap_servers=SERVER_ADDRESS,
     value_serializer=lambda v: json.dumps(v).encode('utf-8')
