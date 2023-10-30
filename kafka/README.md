@@ -12,6 +12,7 @@ Background mode (daemon):
 docker-compose up -d
 ```
 
+
 Create a virtual-environment & activate it
 
 ```
@@ -20,25 +21,43 @@ source sdtd-kafka/bin/activate
 pip install -r requirements.txt # Install dependencies
 ```
 
-Consumer:
+#### Dont forget to rename the file .env.example to .env
+
+#### For each terminal, you need to activate the virtual environment
+
+### Admin: 
+Delete all topics and recreate the "to-do-cities" topic with configurable number of workers (default: 2)
+
+```
+python admin/admin.py
+```
+
+
+### Consumer:
 
 ```
 python consumer/consumer.py
 ```
 
-In another terminal, set again the environment
+### Worker-producer
+On local, you need to run the each worker-producer in a separate terminal
 
 ```
-source sdtd-kafka/bin/activate
+python producer/worker_producer.py
 ```
 
-Producer:
+After launching all workers, wait for 5s and then run the scheduler in another terminal to schedule the tasks
+
+### Scheduler for producer
+```
+python producer/scheduler.py
+```
+
+### UI kafka with kowl
 
 ```
-python producer/producer.py
+docker run --network=host -p 8080:8080 -e KAFKA_BROKERS=localhost:9092 quay.io/cloudhut/kowl:master 
 ```
-
-Kafdrop link: `localhost:9000`
 
 ## References
 

@@ -6,8 +6,10 @@ from kq import Worker
 import kq
 import os
 import json
+from os.path import join, dirname
 from dotenv import load_dotenv
 
+dotenv_path = join(dirname(__file__), '../.env')
 load_dotenv()
 
 SERVER_ADDRESS = os.getenv("SERVER_ADDRESS")
@@ -53,7 +55,7 @@ def callback(status, message, job, result, exception, stacktrace):
         if status == 'failure':
             print(exception)
         
-
+    print("sending", city, "to scheduler with finished =", finished, "in partition", message.partition)
     producer.send(COMPLETED_PARTITIONS_TOPIC, value={'city': city, 'finished': finished, 'partition': message.partition})
     producer.flush()
 

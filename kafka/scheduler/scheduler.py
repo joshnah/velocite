@@ -1,9 +1,12 @@
 from kafka import KafkaProducer,KafkaConsumer
 import os
 import kq
-from dotenv import load_dotenv
 import helper
 import json
+from os.path import join, dirname
+from dotenv import load_dotenv
+
+dotenv_path = join(dirname(__file__), '../.env')
 load_dotenv()
 
 TODO_CITIES_TOPIC = os.getenv("TODO_CITIES_TOPIC")
@@ -70,47 +73,51 @@ if __name__ == "__main__":
 
 
     i = 0
-    for completed in consumer:
-        i += 1
-        print(f"\nMESSAGE {i}\n")
+    done = False
+    while done != True:
+        for completed in consumer:
+            i += 1
+            print(f"\nMESSAGE {i}\n")
 
-        # read the message
-        value = json.loads(completed.value)
-        print("value",value)
-        city = value['city']
-        partition = value['partition']
-        finished = value['finished']
-        print(f"city {city} is {'finished' if {finished} else 'not finished'} by partition {partition}")
-        print(f"list_city_to_process {list_city_to_process}")
-        print(f"processing {processing}")
-
-        if finished == True:
-            # if the city is finished, we remove it from the processing list
-            print(f"removing {city} from processing\n")
-            processing.pop(city)
+            # read the message
+            value = json.loads(completed.value)
+            print("value",value)
+            city = value['city']
+            partition = value['partition']
+            finished = value['finished']
+            print(f"city {city} is {'finished' if {finished} else 'not finished'} by partition {partition}")
             print(f"list_city_to_process {list_city_to_process}")
-            print(f"processing {processing}\n")
+            print(f"processing {processing}")
 
-            if len(list_city_to_process) > 0:
-                schedule_new_city(partition)
-            elif len(processing) == 0: # No more cities to process 
-                break
-
-        elif city in processing: # the city should be in processing 
-
-            if processing[city] < MAX_RETRIES:
-                queue.using(partition=partition, key=None,timeout=TIMEOUT).enqueue(helper.extract_from_api, city)
-                processing[city] += 1
-                print(f"Retrying {city} for the {processing[city]}th time in partition {partition} \n")
-            else:
-                print(f"removing {city} from processing due to max retries \n")
+            if finished == True:
+                # if the city is finished, we remove it from the processing list
+                print(f"removing {city} from processing\n")
                 processing.pop(city)
+                print(f"list_city_to_process {list_city_to_process}")
+                print(f"processing {processing}\n")
+
                 if len(list_city_to_process) > 0:
                     schedule_new_city(partition)
                 elif len(processing) == 0: # No more cities to process 
+                    done = True
                     break
-        print("After message treatment\n")               
-        print(f"list_city_to_process {list_city_to_process}")
-        print(f"processing {processing}")
 
-       
+            elif city in processing: # the city should be in processing 
+
+                if processing[city] < MAX_RETRIES:
+                    queue.using(partition=partition, key=None,timeout=TIMEOUT).enqueue(helper.extract_from_api, city)
+                    processing[city] += 1
+                    print(f"Retrying {city} for the {processing[city]}th time in partition {partition} \n")
+                else:
+                    print(f"removing {city} from processing due to max retries \n")
+                    processing.pop(city)
+                    if len(list_city_to_process) > 0:
+                        schedule_new_city(partition)
+                    elif len(processing) == 0: # No more cities to process 
+                        done = True
+                        break
+            print("After message treatment\n")               
+            print(f"list_city_to_process {list_city_to_process}")
+            print(f"processing {processing}")
+
+        
