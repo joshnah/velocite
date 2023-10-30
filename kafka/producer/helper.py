@@ -1,20 +1,10 @@
-import json
+
+from datetime import datetime
+from time import sleep
+import requests
 import queue
 import threading
-import time
-from kafka import KafkaProducer, KafkaConsumer
 import requests
-
-import os
-from datetime import datetime
-from dotenv import load_dotenv
-
-load_dotenv()
-
-SERVER_ADDRESS = os.getenv("SERVER_ADDRESS")
-RESULT_TOPIC = os.getenv("RESULT_TOPIC")
-TODO_CITIES_TOPIC = os.getenv("TODO_CITIES_TOPIC")
-
 list_apis = {"paris": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/velib-disponibilite-en-temps-reel/records",
            "lille": "https://opendata.lillemetropole.fr/api/explore/v2.1/catalog/datasets/vlille-realtime/records",
            "lyon": "https://transport.data.gouv.fr/gbfs/lyon/station_information.json",
@@ -24,17 +14,6 @@ list_apis = {"paris": "https://opendata.paris.fr/api/explore/v2.1/catalog/datase
            "nancy": "https://transport.data.gouv.fr/gbfs/nancy/station_information.json",
            "amiens": "https://transport.data.gouv.fr/gbfs/amiens/station_information.json",
            "besancon": "https://transport.data.gouv.fr/gbfs/besancon/station_information.json"}
-
-producer = KafkaProducer(
-    bootstrap_servers=SERVER_ADDRESS,
-    value_serializer=lambda v: json.dumps(v).encode('utf-8')
-)
-
-consumer = KafkaConsumer(
-    TODO_CITIES_TOPIC,
-    bootstrap_servers=SERVER_ADDRESS,
-    group_id="producer"
-)
 
 
 def extract_from_opendata_thread(city, thread_id, number_of_threads, merged_results):
@@ -148,23 +127,12 @@ def extract_from_gouv(city):
 
     return {'stations': stations_status, 'city': city}
 
-
-if __name__ == "__main__":
-    """
-       1. Calling API 
-       2. Send the fake data to the consumer topic 
-       3. Sleep 10 seconds and repeat the process utill press Crontrol C
-    """
-
-    try:
-        for city, url in list_apis.items():
-            if (url.find(".json") == -1):
-                print("extract from " + city + " opendata")
-                result = extract_from_opendata(city)
-            else:
-                print("extract from " + city + " gouv")
-                result = extract_from_gouv(city)
-            producer.send(RESULT_TOPIC, result)
-        producer.flush()
-    except KeyboardInterrupt:
-        print("Quit")
+def extract_from_api(city):
+    if (list_apis[city].find(".json") == -1):
+        print("extract from " + city + " opendata")
+        result = extract_from_opendata(city)
+    else:
+        print("extract from " + city + " gouv")
+        result = extract_from_gouv(city)
+    return result
+    

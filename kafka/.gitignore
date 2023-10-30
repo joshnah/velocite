@@ -1,2 +1,3 @@
 sdtd-kafka/
 **/.env
+__pycache__/
