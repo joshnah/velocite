@@ -18,7 +18,8 @@ admin_client = KafkaAdminClient(
 )
 
 topics = admin_client.list_topics()
-topics.remove("__consumer_offsets")
+if "__consumer_offsets" in topics:
+    topics.remove("__consumer_offsets")
 
 print("Delete topics:", topics)
 admin_client.delete_topics(topics)
