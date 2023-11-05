@@ -3,14 +3,11 @@ from kafka import KafkaConsumer
 import os
 from dotenv import load_dotenv
 from cassandra.cluster import Cluster
-from os.path import join, dirname
-
-dotenv_path = join(dirname(__file__), '../.env')
 load_dotenv()
 
 RESULT_TOPIC = os.getenv("RESULT_TOPIC")
 SERVER_ADDRESS = os.getenv("SERVER_ADDRESS")
-CONSUMER_GROUP_ID = 'consumer'
+CONSUMER_GROUP_ID = os.getenv("CONSUMER_GROUP_ID")
 
 
 cluster = Cluster(['127.0.0.1'], port=9042)

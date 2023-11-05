@@ -1,11 +1,8 @@
 from time import sleep
 from kafka import KafkaAdminClient
 from kafka.admin.new_topic import NewTopic
-from os.path import join, dirname
 from dotenv import load_dotenv
 import os
-
-dotenv_path = join(dirname(__file__), '../.env')
 load_dotenv()
 
 NB_WORKER = int(os.getenv("NB_WORKERS"))

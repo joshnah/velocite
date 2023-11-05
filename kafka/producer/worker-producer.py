@@ -6,15 +6,13 @@ from kq import Worker
 import kq
 import os
 import json
-from os.path import join, dirname
 from dotenv import load_dotenv
-
-dotenv_path = join(dirname(__file__), '../.env')
 load_dotenv()
 
 SERVER_ADDRESS = os.getenv("SERVER_ADDRESS")
 RESULT_TOPIC = os.getenv("RESULT_TOPIC")
 COMPLETED_PARTITIONS_TOPIC = os.getenv("COMPLETED_PARTITIONS_TOPIC")
+TODO_CITIES_TOPIC = os.getenv("TODO_CITIES_TOPIC")
 
 # # Set up logging.
 formatter = logging.Formatter('[%(levelname)s]')
@@ -67,5 +65,5 @@ print('Partitions assigned:',consumer.assignment())
 
 
 # Set up a worker.
-worker = Worker(topic='to-do-cities', consumer=consumer, callback=callback)
+worker = Worker(topic=TODO_CITIES_TOPIC, consumer=consumer, callback=callback)
 worker.start()

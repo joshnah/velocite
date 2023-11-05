@@ -3,10 +3,7 @@ import os
 import kq
 import helper
 import json
-from os.path import join, dirname
 from dotenv import load_dotenv
-
-dotenv_path = join(dirname(__file__), '../.env')
 load_dotenv()
 
 TODO_CITIES_TOPIC = os.getenv("TODO_CITIES_TOPIC")
@@ -14,6 +11,7 @@ SERVER_ADDRESS = os.getenv("SERVER_ADDRESS")
 COMPLETED_PARTITIONS_TOPIC = os.getenv("COMPLETED_PARTITIONS_TOPIC")
 MAX_RETRIES = 3
 TIMEOUT = 5
+
 producer = KafkaProducer(
     bootstrap_servers=SERVER_ADDRESS,
 )
@@ -22,6 +20,12 @@ consumer = KafkaConsumer(
     COMPLETED_PARTITIONS_TOPIC,
     bootstrap_servers=SERVER_ADDRESS,
     group_id="scheduler",
+    enable_auto_commit=False,
+    # Heartbeats are used to ensure that the consumer’s session stays active
+    # As this is a single consumer group, we can increase the heartbeat interval. Otherwise kafka will reblance the group
+    heartbeat_interval_ms=10000,
+    # The session timeout is used to detect failures. Heartbeats interval should be lower than session timeout/3
+    session_timeout_ms=30000,
 )
 
 
@@ -69,55 +73,55 @@ if __name__ == "__main__":
     print(f"list_city_to_process {list_city_to_process}")
     print(f"processing {processing}")
     print("\nScheduling the rest\n")
-    # while len(list_city_to_process) or len(processing) > 0:
 
 
-    i = 0
-    done = False
-    while done != True:
-        for completed in consumer:
-            i += 1
-            print(f"\nMESSAGE {i}\n")
+    msg_count = 0
+    for completed in consumer:
+        msg_count += 1
+        print(f"\nMESSAGE {msg_count}\n")
 
-            # read the message
-            value = json.loads(completed.value)
-            print("value",value)
-            city = value['city']
-            partition = value['partition']
-            finished = value['finished']
-            print(f"city {city} is {'finished' if {finished} else 'not finished'} by partition {partition}")
+        # read the message
+        value = json.loads(completed.value)
+        print("value",value)
+        city = value['city']
+        partition = value['partition']
+        finished = value['finished']
+        print(f"city {city} is {'finished' if {finished} else 'not finished'} by partition {partition}")
+        print(f"list_city_to_process {list_city_to_process}")
+        print(f"processing {processing}")
+        consumer.commit()
+        if finished == True:
+            # if the city is finished, we remove it from the processing list
+            print(f"removing {city} from processing\n")
+            processing.pop(city)
             print(f"list_city_to_process {list_city_to_process}")
-            print(f"processing {processing}")
+            print(f"processing {processing}\n")
 
-            if finished == True:
-                # if the city is finished, we remove it from the processing list
-                print(f"removing {city} from processing\n")
+            if len(list_city_to_process) > 0:
+                schedule_new_city(partition)
+            elif len(processing) == 0: # No more cities to process 
+                done = True
+                break
+
+        elif city in processing: # the city should be in processing 
+
+            if processing[city] < MAX_RETRIES:
+                queue.using(partition=partition, key=None,timeout=TIMEOUT).enqueue(helper.extract_from_api, city)
+                processing[city] += 1
+                print(f"Retrying {city} for the {processing[city]}th time in partition {partition} \n")
+            else:
+                print(f"removing {city} from processing due to max retries \n")
                 processing.pop(city)
-                print(f"list_city_to_process {list_city_to_process}")
-                print(f"processing {processing}\n")
-
                 if len(list_city_to_process) > 0:
                     schedule_new_city(partition)
                 elif len(processing) == 0: # No more cities to process 
                     done = True
                     break
+        print("After message treatment\n")               
+        print(f"list_city_to_process {list_city_to_process}")
+        print(f"processing {processing}")
 
-            elif city in processing: # the city should be in processing 
+    
 
-                if processing[city] < MAX_RETRIES:
-                    queue.using(partition=partition, key=None,timeout=TIMEOUT).enqueue(helper.extract_from_api, city)
-                    processing[city] += 1
-                    print(f"Retrying {city} for the {processing[city]}th time in partition {partition} \n")
-                else:
-                    print(f"removing {city} from processing due to max retries \n")
-                    processing.pop(city)
-                    if len(list_city_to_process) > 0:
-                        schedule_new_city(partition)
-                    elif len(processing) == 0: # No more cities to process 
-                        done = True
-                        break
-            print("After message treatment\n")               
-            print(f"list_city_to_process {list_city_to_process}")
-            print(f"processing {processing}")
-
-        
+print("#### SCHEDULER IS DONE ####\n")
+consumer.close()

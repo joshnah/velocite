@@ -1,6 +1,5 @@
 
 from datetime import datetime
-from time import sleep
 import requests
 import queue
 import threading
