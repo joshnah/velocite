@@ -3,6 +3,8 @@ import os
 import kq
 import helper
 import json
+import schedule
+import time
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -11,6 +13,7 @@ SERVER_ADDRESS = os.getenv("SERVER_ADDRESS")
 COMPLETED_PARTITIONS_TOPIC = os.getenv("COMPLETED_PARTITIONS_TOPIC")
 MAX_RETRIES = 3
 TIMEOUT = 5
+FETCH_INTERVAL = 5
 
 producer = KafkaProducer(
     bootstrap_servers=SERVER_ADDRESS,
@@ -46,28 +49,31 @@ queue = kq.Queue(topic=TODO_CITIES_TOPIC, producer=producer)
 # Number of partitions of the topic
 nb_partitions = len(producer.partitions_for(TODO_CITIES_TOPIC))
 
-# list of cities to process
-list_city_to_process = list(list_apis.keys())
 
-# Dictionary of cities being processed as keys and number of retries as values. Ex: {"paris": 2}
-processing = {}
-
-def schedule_new_city(partition):
+def schedule_new_city(partition, list_city_to_process, processing):
     city = list_city_to_process.pop()
     queue.using(partition=partition, key=None,timeout=TIMEOUT).enqueue(helper.extract_from_api, city)
     processing[city] = 0
     producer.flush()
     print(f"adding {city} to processing\n")
 
-if __name__ == "__main__":
 
+
+def job():
+    
     print("#### SCHEDULER IS RUNNING ####\n")
+    start_time = time.time()
 
+    # list of cities to process
+    list_city_to_process = list(list_apis.keys())
+
+    # Dictionary of cities being processed as keys and number of retries as values. Ex: {"paris": 2}
+    processing = {}
     # First, schedule "nb_partitions" firsts cities
 
     print("Scheduling first cities\n")
     for i in range(nb_partitions):
-        schedule_new_city(i)
+        schedule_new_city(i, list_city_to_process, processing)
 
     # for the rest
     print(f"list_city_to_process {list_city_to_process}")
@@ -98,9 +104,8 @@ if __name__ == "__main__":
             print(f"processing {processing}\n")
 
             if len(list_city_to_process) > 0:
-                schedule_new_city(partition)
+                schedule_new_city(partition, list_city_to_process, processing)
             elif len(processing) == 0: # No more cities to process 
-                done = True
                 break
 
         elif city in processing: # the city should be in processing 
@@ -113,15 +118,20 @@ if __name__ == "__main__":
                 print(f"removing {city} from processing due to max retries \n")
                 processing.pop(city)
                 if len(list_city_to_process) > 0:
-                    schedule_new_city(partition)
+                    schedule_new_city(partition, list_city_to_process, processing)
                 elif len(processing) == 0: # No more cities to process 
-                    done = True
                     break
-        print("After message treatment\n")               
-        print(f"list_city_to_process {list_city_to_process}")
-        print(f"processing {processing}")
+        # print(f"list_city_to_process {list_city_to_process}")
+        # print(f"processing {processing}")
+    print("#### SCHEDULER IS DONE WITHIN %s SECONDS ####\n" % (time.time() - start_time))
 
-    
 
-print("#### SCHEDULER IS DONE ####\n")
+
+if __name__ == "__main__":
+    # Execute job() every FETCH_INTERVAL seconds
+    schedule.every(FETCH_INTERVAL).seconds.do(job)
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
 consumer.close()

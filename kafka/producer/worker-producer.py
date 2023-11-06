@@ -15,12 +15,12 @@ COMPLETED_PARTITIONS_TOPIC = os.getenv("COMPLETED_PARTITIONS_TOPIC")
 TODO_CITIES_TOPIC = os.getenv("TODO_CITIES_TOPIC")
 
 # # Set up logging.
-formatter = logging.Formatter('[%(levelname)s]')
-stream_handler = logging.StreamHandler()
-stream_handler.setFormatter(formatter)
-logger = logging.getLogger('kq.worker')
-logger.setLevel(logging.DEBUG)
-logger.addHandler(stream_handler)
+# formatter = logging.Formatter('[%(levelname)s]')
+# stream_handler = logging.StreamHandler()
+# stream_handler.setFormatter(formatter)
+# logger = logging.getLogger('kq.worker')
+# logger.setLevel(logging.DEBUG)
+# logger.addHandler(stream_handler)
 
 # Set up a Kafka consumer.
 consumer = KafkaConsumer(
