@@ -90,7 +90,7 @@ if __name__ == "__main__":
         print(f"list_city_to_process {list_city_to_process}")
         print(f"processing {processing}")
         consumer.commit()
-        if finished == True:
+        if finished == True and city in processing:
             # if the city is finished, we remove it from the processing list
             print(f"removing {city} from processing\n")
             processing.pop(city)

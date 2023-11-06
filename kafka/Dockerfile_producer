@@ -6,8 +6,9 @@ COPY ./requirements.txt ./
 
 RUN pip install -r requirements.txt
 
-COPY producer/producer.py ./
+COPY producer/worker-producer.py ./
+COPY producer/helper.py ./
 
 EXPOSE 9092
 
-CMD [ "python", "./producer.py" ]
+CMD [ "python", "./worker-producer.py" ]
