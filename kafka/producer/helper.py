@@ -4,22 +4,12 @@ import requests
 import queue
 import threading
 import requests
-list_apis = {"paris": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/velib-disponibilite-en-temps-reel/records",
-           "lille": "https://opendata.lillemetropole.fr/api/explore/v2.1/catalog/datasets/vlille-realtime/records",
-           "lyon": "https://transport.data.gouv.fr/gbfs/lyon/station_information.json",
-           "strasbourg": "https://data.strasbourg.eu/api/explore/v2.1/catalog/datasets/stations-velhop/records",
-           "toulouse": "https://data.toulouse-metropole.fr/api/explore/v2.1/catalog/datasets/api-velo-toulouse-temps-reel/records",
-           "bordeaux": "https://transport.data.gouv.fr/gbfs/vcub/station_information.json",
-           "nancy": "https://transport.data.gouv.fr/gbfs/nancy/station_information.json",
-           "amiens": "https://transport.data.gouv.fr/gbfs/amiens/station_information.json",
-           "besancon": "https://transport.data.gouv.fr/gbfs/besancon/station_information.json"}
 
-
-def extract_from_opendata_thread(city, thread_id, number_of_threads, merged_results):
+def extract_from_opendata_thread(city, url_base, thread_id, number_of_threads, merged_results):
     offset = thread_id * 100
     results = []
     while True:
-        url = list_apis[city] + "?limit=100&offset=" + str(offset)
+        url = url_base + "?limit=100&offset=" + str(offset)
         try:
             response = requests.get(url).json()
         except Exception as e:
@@ -70,10 +60,9 @@ def extract_from_opendata_thread(city, thread_id, number_of_threads, merged_resu
     merged_results.put(results)
 
 
-def extract_from_opendata(city):
+def extract_from_opendata(city,url):
     merged_results = queue.Queue()
     total = 0
-    url = list_apis[city]
     try:
         response = requests.get(url).json()
         total = response["total_count"]
@@ -87,7 +76,7 @@ def extract_from_opendata(city):
     threads = []
     for i in range(number_of_threads):
         t = threading.Thread(target=extract_from_opendata_thread, args=(
-            city, i, number_of_threads, merged_results))
+            city, url, i, number_of_threads, merged_results))
         threads.append(t)
         t.start()
     for t in threads:
@@ -98,16 +87,16 @@ def extract_from_opendata(city):
     return {'stations': stations, 'city': city}
 
 
-def extract_from_gouv(city):
+def extract_from_gouv(city,url):
     try:
-        stations_informations = requests.get(list_apis[city]).json()
+        stations_informations = requests.get(url).json()
     except Exception as e:
         print(e)
         print("Error while calling API informations from gouv")
         exit(1)
     stations_informations = stations_informations["data"]["stations"]
     try:
-        stations_status = requests.get(list_apis[city].replace(
+        stations_status = requests.get(url.replace(
             "station_information", "station_status")).json()
     except Exception as e:
         print(e)
@@ -126,12 +115,12 @@ def extract_from_gouv(city):
 
     return {'stations': stations_status, 'city': city}
 
-def extract_from_api(city):
-    if (list_apis[city].find(".json") == -1):
+def extract_from_api(city, url):
+    if (url.find(".json") == -1):
         print("extract from " + city + " opendata")
-        result = extract_from_opendata(city)
+        result = extract_from_opendata(city,url)
     else:
         print("extract from " + city + " gouv")
-        result = extract_from_gouv(city)
+        result = extract_from_gouv(city,url)
     return result
     
