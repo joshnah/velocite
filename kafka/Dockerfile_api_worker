@@ -6,8 +6,8 @@ COPY ./requirements.txt ./
 
 RUN pip install -r requirements.txt
 
-COPY consumer/consumer.py ./
+COPY api-worker/*.py  ./
 
 EXPOSE 9092
 
-CMD [ "python", "./consumer.py" ]
+CMD [ "python", "./api-worker.py" ]
