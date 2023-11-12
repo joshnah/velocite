@@ -5,15 +5,16 @@ from dotenv import load_dotenv
 from cassandra.cluster import Cluster
 
 
-cluster = Cluster(['127.0.0.1'], port=9042)
-session = cluster.connect()
-
-
 load_dotenv()
 
 RESULT_TOPIC = os.getenv("RESULT_TOPIC")
 SERVER_ADDRESS = os.getenv("SERVER_ADDRESS")
-CONSUMER_GROUP_ID = 'consumer'
+CONSUMER_GROUP_ID = os.getenv("CONSUMER_GROUP_ID")
+CASSANDRA_ADDRESS = os.getenv("CASSANDRA_ADDRESS")
+CASSANDRA_PORT = os.getenv("CASSANDRA_PORT")
+
+cluster = Cluster([CASSANDRA_ADDRESS], port=CASSANDRA_PORT)
+session = cluster.connect()
 
 # defining consumer
 consumer = KafkaConsumer(
