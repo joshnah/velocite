@@ -17,9 +17,9 @@ steps:
   # Cloner projet-sdtd-k8s
   - name: 'gcr.io/cloud-builders/git'
     args:
-      - 'clone'
-      - 'git clone https://LouisJeudy:glpat-wb2C9Foaa6igyuoudgBc@gitlab.com/phanti/projet-sdtd-k8s.git'
-      - './'  # Spécifiez le chemin où le dépôt doit être cloné
+      - 'git clone'
+      - 'https://LouisJeudy:glpat-wb2C9Foaa6igyuoudgBc@gitlab.com/phanti/projet-sdtd-k8s.git'
+      - 'projet-sdtd-k8s'  # Spécifiez le chemin où le dépôt doit être cloné
 
   # Exécuter le script shell de déploiement des ressources
   - name: 'gcr.io/cloud-builders/docker'
