@@ -1,7 +1,7 @@
-# steps:
-#   # Configurer la région pour créer le cluster
-#   - name: 'gcr.io/cloud-builders/gcloud'
-#     args: ['config', 'set', 'compute/zone', 'europe-west6-a']
+steps:
+  # Configurer la région pour créer le cluster
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args: ['config', 'set', 'compute/zone', 'europe-west6-a']
 
 # steps:
 #   # Création du cluster
