@@ -12,7 +12,7 @@ steps:
 
   # Utilisation du cluster créé dans kubectl
   - name: 'gcr.io/cloud-builders/kubectl'
-    args: ['config', 'set-context', 'sdtd-402908_europe-west6-a_sdtd-cluster', '--namespace-default']
+    args: ['config', 'set-context', 'sdtd-402908_europe-west6-a_sdtd-cluster']
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=europe-west6-a'
       - 'CLOUDSDK_CONTAINER_CLUSTER=sdtd-cluster'
