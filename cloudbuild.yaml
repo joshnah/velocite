@@ -22,11 +22,9 @@ steps:
       - 'projet-sdtd-k8s'
 
   # Exécuter le script shell de déploiement des ressources
-  - name: 'gcr.io/cloud-builders/docker'
-    args:
-      - 'gcr.io/cloud-builders/gcloud'
+  - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
-    # Se placer dans le réperoire du projet
+    # Se placer dans le répertoire du projet
     dir: './projet-sdtd-k8s'
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=europe-west6-a'
