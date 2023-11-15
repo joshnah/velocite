@@ -13,6 +13,9 @@ steps:
   # Utilisation du cluster créé dans kubectl
   - name: 'gcr.io/cloud-builders/kubectl'
     args: ['config', 'set-context', 'sdtd-402908_europe-west6-a_sdtd-cluster', '--namespace-default']
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=europe-west6-a'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=sdtd-cluster'
 
   # Cloner projet-sdtd-k8s
   - name: 'gcr.io/cloud-builders/git'
