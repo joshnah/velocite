@@ -1,19 +1,19 @@
-steps:
-  # Configurer la région pour créer le cluster
-  - name: 'gcr.io/cloud-builders/gcloud'
-    args: ['config', 'set', 'compute/zone', 'europe-west6-a']
-
 # steps:
-#   # Création du cluster
+#   # Configurer la région pour créer le cluster
 #   - name: 'gcr.io/cloud-builders/gcloud'
-#     args: ['container', 'clusters', 'create', 'sdtd-cluster']
+#     args: ['config', 'set', 'compute/zone', 'europe-west6-a']
+
+# # steps:
+# #   # Création du cluster
+# #   - name: 'gcr.io/cloud-builders/gcloud'
+# #     args: ['container', 'clusters', 'create', 'sdtd-cluster']
 
 steps:
+
   # Utilisation du cluster créé dans kubectl
   - name: 'gcr.io/cloud-builders/kubectl'
     args: ['config', 'set-context', 'sdtd-402908_europe-west6-a_sdtd-cluster', '--namespace-default']
 
-steps:
   # Cloner projet-sdtd-k8s
   - name: 'gcr.io/cloud-builders/git'
     args:
