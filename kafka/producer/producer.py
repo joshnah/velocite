@@ -44,11 +44,11 @@ def extract_from_opendata_thread(city, thread_id, number_of_threads, merged_resu
     while True:
         url = list_apis[city] + "?limit=100&offset=" + str(offset)
         try:
-            response = requests.get(url).json()
+            response = requests.get(url, timeout=5).json()
         except Exception as e:
             print(e)
             print("Error while calling API from opendata")
-            exit(1)
+            return None
         if (len(response["results"]) > 0):
             results = results + response["results"]
             offset += number_of_threads * 100
@@ -98,12 +98,12 @@ def extract_from_opendata(city):
     total = 0
     url = list_apis[city]
     try:
-        response = requests.get(url).json()
+        response = requests.get(url, timeout=5).json()
         total = response["total_count"]
     except Exception as e:
         print(e)
         print("Error while calling API from opendata")
-        exit(1)
+        return None
     number_of_pages = total // 100 + 1
     max_threads = 10
     number_of_threads = min(max_threads, number_of_pages)
@@ -123,19 +123,25 @@ def extract_from_opendata(city):
 
 def extract_from_gouv(city):
     try:
-        stations_informations = requests.get(list_apis[city]).json()
+        stations_informations = requests.get(list_apis[city], timeout=5).json()
+        if "data" not in stations_informations:
+            # raise exception
+            raise ValueError('No data')
     except Exception as e:
         print(e)
         print("Error while calling API informations from gouv")
-        exit(1)
+        return None
     stations_informations = stations_informations["data"]["stations"]
     try:
         stations_status = requests.get(list_apis[city].replace(
-            "station_information", "station_status")).json()
+            "station_information", "station_status"), timeout=5).json()
+        if "data" not in stations_status:
+            # raise exception
+            raise ValueError('No data')
     except Exception as e:
         print(e)
         print("Error while calling API status from gouv")
-        exit(1)
+        return None
     stations_status = stations_status["data"]["stations"]
     stations_dict = {}
     for station in stations_informations:
@@ -167,7 +173,8 @@ if __name__ == "__main__":
                 else:
                     print("extract from " + city + " gouv")
                     result = extract_from_gouv(city)
-                producer.send(RESULT_TOPIC, result)
+                if result != None:
+                    producer.send(RESULT_TOPIC, result)
             producer.flush()
         except KeyboardInterrupt:
             print("Quit")
