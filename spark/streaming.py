@@ -1,49 +1,23 @@
-"""
-Demo Spark Structured Streaming + Apache Kafka + Cassandra
-"""
-
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import sum
-from dotenv import load_dotenv
-load_dotenv()
-import os
-
-SERVER_ADDRESS = os.getenv("SERVER_ADDRESS")
-RESULT_TOPIC = os.getenv("RESULT_TOPIC")
-
-# def writeToCassandra(df, epochId):
-#     df.write \
-#         .format("org.apache.spark.sql.cassandra") \
-#         .options(table="transactions", keyspace="demo") \
-#         .mode("append") \
-#         .save()
 
 def main():
     spark = SparkSession.builder \
-        .appName("Spark-Kafka-Cassandra") \
-        .enableHiveSupport() \
+        .appName("Spark-Cassandra-App") \
+        .config("spark.cassandra.connection.host", "localhost") \
+        .config("spark.cassandra.connection.port", "9042") \
         .getOrCreate()
 
-    spark.sparkContext.setLogLevel("ERROR")
-    spark \
-        .readStream \
-        .format("kafka") \
-        .option("kafka.bootstrap.servers", SERVER_ADDRESS) \
-        .option("subscribe", RESULT_TOPIC) \
-        .option("startingOffsets", "earliest") \
-        .load() \
-        .selectExpr("CAST(value AS STRING)") \
-        .writeStream \
-        .format("console") \
-        .start() \
-        .awaitTermination()
-    
+    # Read data from Cassandra
+    df = spark.read \
+        .format("org.apache.spark.sql.cassandra") \
+        .options(table="stations", keyspace="station") \
+        .load()
 
-    
-    # print to console
-    # .writeStream \
+    # Show the data
+    df.show()
 
-
+    # Stop the Spark session
+    spark.stop()
 
 if __name__ == "__main__":
     main()
