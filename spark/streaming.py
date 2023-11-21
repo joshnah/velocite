@@ -32,6 +32,8 @@ kafka_df = (
     .format("kafka")
     .option("kafka.bootstrap.servers", "localhost:9092")
     .option("subscribe", "api_result")
+    .option("failOnDataLoss", "false") 
+    .option("startingOffsets", "latest")
     .load()
 )
 
@@ -43,25 +45,24 @@ exploded_df = parsed_df.select("city", explode("stations").alias("station"))
 # Select relevant columns from the exploded DataFrame
 final_df = exploded_df.select(
     col("city"),
-    col("station.station_id"),
-    col("station.name"),
-    col("station.lat"),
-    col("station.lon"),
-    col("station.num_bikes_available"),
-    col("station.num_docks_available"),
-    col("station.capacity"),
-    col("station.last_reported").alias("updated_at")  # Create 'updated_at' column with current timestamp
+    col("station.station_id").alias("station_id"),
+    col("station.num_bikes_available").alias("bikes"),
+    col("station.capacity").alias("capacity"),
+    current_timestamp().alias("updated_at")  # Create 'updated_at' column with current timestamp
 )
-# Print the DataFrame to the console
 query = final_df.writeStream \
     .outputMode("append") \
     .format("console") \
-    .start().awaitTermination()
-final_df.writeStream \
-    .outputMode("append") \
-    .format("org.apache.spark.sql.cassandra") \
-    .option("keyspace", "station") \
-    .option("table", "stations") \
-    .option("checkpointLocation", "/tmp/checkpoint") \
-    .start() \
-    .awaitTermination()
+    .option("truncate", "false") \
+    .start()
+
+query.awaitTermination()
+
+# final_df.writeStream \
+#     .outputMode("append") \
+#     .format("org.apache.spark.sql.cassandra") \
+#     .option("keyspace", "station") \
+#     .option("table", "stations") \
+#     .option("checkpointLocation", "/tmp/checkpoint") \
+#     .start() \
+#     .awaitTermination()
