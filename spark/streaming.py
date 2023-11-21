@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import from_json, col, current_timestamp
+from pyspark.sql.functions import from_json, col, current_timestamp,explode
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType, DoubleType, ArrayType
 
 # Define the schema for the Kafka message
@@ -35,14 +35,13 @@ kafka_df = (
     .load()
 )
 
-# Parse the JSON data from the Kafka message
 parsed_df = kafka_df.selectExpr("CAST(value AS STRING)").select(from_json("value", schema).alias("data")).select("data.*")
 
-# Expand the 'stations' JSON array into separate rows
-stations_df = parsed_df.selectExpr("explode(stations) as station")
 
-# Select relevant columns from the 'station' struct
-final_df = stations_df.select(
+exploded_df = parsed_df.select("city", explode("stations").alias("station"))
+
+# Select relevant columns from the exploded DataFrame
+final_df = exploded_df.select(
     col("city"),
     col("station.station_id"),
     col("station.name"),
@@ -50,20 +49,19 @@ final_df = stations_df.select(
     col("station.lon"),
     col("station.num_bikes_available"),
     col("station.num_docks_available"),
-    col("station.capacity")
+    col("station.capacity"),
+    col("station.last_reported").alias("updated_at")  # Create 'updated_at' column with current timestamp
 )
-
 # Print the DataFrame to the console
 query = final_df.writeStream \
     .outputMode("append") \
     .format("console") \
     .start().awaitTermination()
-# Write the data to Cassandra
-# final_df.writeStream \
-#     .outputMode("append") \
-#     .format("org.apache.spark.sql.cassandra") \
-#     .option("keyspace", "station") \
-#     .option("table", "stations") \
-#     .option("checkpointLocation", "/tmp/checkpoint") \
-#     .start() \
-#     .awaitTermination()
+final_df.writeStream \
+    .outputMode("append") \
+    .format("org.apache.spark.sql.cassandra") \
+    .option("keyspace", "station") \
+    .option("table", "stations") \
+    .option("checkpointLocation", "/tmp/checkpoint") \
+    .start() \
+    .awaitTermination()
