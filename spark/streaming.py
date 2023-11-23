@@ -1,6 +1,7 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import from_json, col, current_timestamp,explode
-from pyspark.sql.types import StructType, StructField, StringType, IntegerType, DoubleType, ArrayType
+from pyspark.sql.functions import from_json, col, explode, from_unixtime,window,avg,date_format
+from pyspark.sql.types import StructType, StructField, StringType, IntegerType, DoubleType, ArrayType, TimestampType
+import sys
 
 # Define the schema for the Kafka message
 schema = StructType([
@@ -8,7 +9,7 @@ schema = StructType([
         StructField("is_installed", IntegerType(), True),
         StructField("is_renting", IntegerType(), True),
         StructField("is_returning", IntegerType(), True),
-        StructField("last_reported", IntegerType(), True),
+        StructField("last_reported", StringType(), True),
         StructField("num_bikes_available", IntegerType(), True),
         StructField("num_docks_available", IntegerType(), True),
         StructField("station_id", StringType(), True),
@@ -19,50 +20,83 @@ schema = StructType([
     ])), True),
     StructField("city", StringType(), True)
 ])
-# Create a Spark session
-spark = SparkSession.builder \
-    .appName("Spark-Cassandra-App") \
-    .config("spark.cassandra.connection.host", "localhost") \
-    .config("spark.cassandra.connection.port", "9042") \
-    .getOrCreate()
 
-# Read data from Kafka
-kafka_df = (
-    spark.readStream
-    .format("kafka")
-    .option("kafka.bootstrap.servers", "localhost:9092")
-    .option("subscribe", "api_result")
-    .option("failOnDataLoss", "false") 
-    .option("startingOffsets", "latest")
-    .load()
-)
+def write_to_cassandra(df, epoch_id):
+    print("\nWriting to Cassandra...\n")
+    df.write \
+        .format("org.apache.spark.sql.cassandra") \
+        .option("keyspace", "station") \
+        .option("table", "stations") \
+        .mode("append") \
+        .save()
+def main():
+    kafka_server = sys.argv[1]
+    api_result_topic = sys.argv[2]
+    cassandra_host = sys.argv[3]
+    cassandra_port = sys.argv[4]
+    
+    print("kafka_server: ", kafka_server)
+    print("api_result_topic: ", api_result_topic)
+    print("cassandra_host: ", cassandra_host)
+    print("cassandra_port: ", cassandra_port)
+    # Create a Spark session
+    spark = SparkSession.builder \
+        .appName("Spark-Cassandra-App") \
+        .config("spark.cassandra.connection.host", cassandra_host) \
+        .config("spark.cassandra.connection.port", cassandra_port) \
+        .getOrCreate()
 
-parsed_df = kafka_df.selectExpr("CAST(value AS STRING)").select(from_json("value", schema).alias("data")).select("data.*")
+    spark.sparkContext.setLogLevel("ERROR")
+
+    kafka_df = (
+        spark.readStream
+        .format("kafka")
+        .option("kafka.bootstrap.servers", kafka_server)
+        .option("subscribe", api_result_topic)
+        .option("startingOffsets", "latest")
+        .load()
+    )
+    parsed_df = kafka_df.selectExpr("CAST(value AS STRING)").select(
+        from_json("value", schema).alias("data")).select("data.*")
+
+    exploded_df = parsed_df.select(
+        "city", explode("stations").alias("station"))
+
+    # Select relevant columns from the exploded DataFrame
+    final_df = exploded_df.select(
+        col("city"),
+        col("station.station_id").alias("station_id"),
+        col("station.num_bikes_available").alias("bikes"),
+        col("station.capacity").alias("capacity"),
+        from_unixtime("station.last_reported").alias("last_reported").cast(
+            TimestampType()),  # Convert epoch timestamp to timestamp
+    )
+
+    window_spec = (
+        final_df \
+        .withWatermark("last_reported", "1 minute") \
+        .groupBy("station_id", "city", window("last_reported", "1 minute").alias("updated_at"))
+        .agg(avg("bikes").alias("bikes"),avg("capacity").alias("capacity"))
+    ).withColumn(
+        "updated_at",
+        date_format("updated_at.start", "yyyy-MM-dd HH:mm:ss")
+    )
+
+    # display real time data
+    query = final_df.writeStream \
+        .outputMode("update") \
+        .format("console") \
+        .option("truncate", "false") \
+        .start()
+
+    # Write to cassandra each minute the average of bikes available
+    cassandra_query = window_spec.writeStream \
+        .outputMode("complete") \
+        .foreachBatch(write_to_cassandra) \
+        .trigger(processingTime="1 minute") \
+        .start() \
+        .awaitTermination()
 
 
-exploded_df = parsed_df.select("city", explode("stations").alias("station"))
-
-# Select relevant columns from the exploded DataFrame
-final_df = exploded_df.select(
-    col("city"),
-    col("station.station_id").alias("station_id"),
-    col("station.num_bikes_available").alias("bikes"),
-    col("station.capacity").alias("capacity"),
-    current_timestamp().alias("updated_at")  # Create 'updated_at' column with current timestamp
-)
-query = final_df.writeStream \
-    .outputMode("append") \
-    .format("console") \
-    .option("truncate", "false") \
-    .start()
-
-query.awaitTermination()
-
-# final_df.writeStream \
-#     .outputMode("append") \
-#     .format("org.apache.spark.sql.cassandra") \
-#     .option("keyspace", "station") \
-#     .option("table", "stations") \
-#     .option("checkpointLocation", "/tmp/checkpoint") \
-#     .start() \
-#     .awaitTermination()
+if __name__ == "__main__":
+    main()
