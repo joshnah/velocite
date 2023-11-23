@@ -14,3 +14,5 @@ The webserver is under the `webserver` directory. It is a FastAPI webserver that
 
 ## Kafka
 The Kafka service is under the `kafka` directory. For more information, see the [README](kafka/README.md) in the `kafka` directory.
+
+Test déme trigger
