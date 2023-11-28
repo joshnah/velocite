@@ -15,16 +15,16 @@ SERVER_ADDRESS = os.getenv("SERVER_ADDRESS")
 RESULT_TOPIC = os.getenv("RESULT_TOPIC")
 TODO_CITIES_TOPIC = os.getenv("TODO_CITIES_TOPIC")
 
-list_apis = {"paris": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/velib-disponibilite-en-temps-reel/records"}
-        #    "lille": "https://opendata.lillemetropole.fr/api/explore/v2.1/catalog/datasets/vlille-realtime/records",
-        #    "lyon": "https://transport.data.gouv.fr/gbfs/lyon/station_information.json",
-        #    "strasbourg": "https://data.strasbourg.eu/api/explore/v2.1/catalog/datasets/stations-velhop/records",
-        #    "toulouse": "https://data.toulouse-metropole.fr/api/explore/v2.1/catalog/datasets/api-velo-toulouse-temps-reel/records",
-        #    "bordeaux": "https://transport.data.gouv.fr/gbfs/vcub/station_information.json",
-        #    "nancy": "https://transport.data.gouv.fr/gbfs/nancy/station_information.json",
-        #    "amiens": "https://transport.data.gouv.fr/gbfs/amiens/station_information.json",
-        #    "besancon": "https://transport.data.gouv.fr/gbfs/besancon/station_information.json"}
-
+list_apis = {"paris": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/velib-disponibilite-en-temps-reel/records",
+           "lille": "https://opendata.lillemetropole.fr/api/explore/v2.1/catalog/datasets/vlille-realtime/records",
+           "lyon": "https://transport.data.gouv.fr/gbfs/lyon/station_information.json",
+           "strasbourg": "https://data.strasbourg.eu/api/explore/v2.1/catalog/datasets/stations-velhop/records",
+           "toulouse": "https://data.toulouse-metropole.fr/api/explore/v2.1/catalog/datasets/api-velo-toulouse-temps-reel/records",
+           "bordeaux": "https://transport.data.gouv.fr/gbfs/vcub/station_information.json",
+           "nancy": "https://transport.data.gouv.fr/gbfs/nancy/station_information.json",
+           "amiens": "https://transport.data.gouv.fr/gbfs/amiens/station_information.json",
+           "besancon": "https://transport.data.gouv.fr/gbfs/besancon/station_information.json"}
+# list_apis ={"besancon": "https://transport.data.gouv.fr/gbfs/besancon/station_information.json"}
 
 producer = KafkaProducer(
     bootstrap_servers=SERVER_ADDRESS,
@@ -63,8 +63,8 @@ def extract_from_opendata_thread(city, thread_id, number_of_threads, merged_resu
                 station["lat"] = station["geo"]["lat"]
                 station["lon"] = station["geo"]["lon"]
                 station["num_bikes_available"] = station["nbvelosdispo"]
-                station["last_reported"] = datetime.strptime(
-                    station["datemiseajour"][:-6], "%Y-%m-%dT%H:%M:%S").timestamp()
+                station["last_reported"] = str(datetime.strptime(
+                    station["datemiseajour"][:-6], "%Y-%m-%dT%H:%M:%S").timestamp())
         case "strasbourg":
             for station in results:
                 station["name"] = station["na"]
@@ -80,16 +80,16 @@ def extract_from_opendata_thread(city, thread_id, number_of_threads, merged_resu
                 station["lat"] = station["position"]["lat"]
                 station["lon"] = station["position"]["lon"]
                 station["num_bikes_available"] = station["available_bikes"]
-                station["last_reported"] = datetime.strptime(
-                    station["last_update"][:-6], "%Y-%m-%dT%H:%M:%S").timestamp()
+                station["last_reported"] = str(datetime.strptime(
+                    station["last_update"][:-6], "%Y-%m-%dT%H:%M:%S").timestamp())
         case default:
             for station in results:
                 station["lat"] = station["coordonnees_geo"]["lat"]
                 station["lon"] = station["coordonnees_geo"]["lon"]
                 station["num_bikes_available"] = station["numbikesavailable"]
                 station["station_id"] = station["stationcode"]
-                station["last_reported"] = datetime.strptime(
-                    station["duedate"][:-6], "%Y-%m-%dT%H:%M:%S").timestamp()
+                station["last_reported"] = str(datetime.strptime(
+                    station["duedate"][:-6], "%Y-%m-%dT%H:%M:%S").timestamp())
     merged_results.put(results)
 
 
@@ -181,4 +181,4 @@ if __name__ == "__main__":
             break
         print("\nSLEEP..... \n")
         i = i+ 1
-        time.sleep(10)
+        time.sleep(30)

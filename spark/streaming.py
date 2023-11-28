@@ -2,7 +2,6 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import from_json, col, explode, from_unixtime,window,avg,date_format
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType, DoubleType, ArrayType, TimestampType
 import sys
-
 # Define the schema for the Kafka message
 schema = StructType([
     StructField("stations", ArrayType(StructType([
@@ -30,20 +29,16 @@ def write_to_cassandra(df, epoch_id):
         .mode("append") \
         .save()
 def main():
-    kafka_server = sys.argv[1]
-    api_result_topic = sys.argv[2]
-    cassandra_host = sys.argv[3]
-    cassandra_port = sys.argv[4]
-    
-    print("kafka_server: ", kafka_server)
-    print("api_result_topic: ", api_result_topic)
-    print("cassandra_host: ", cassandra_host)
-    print("cassandra_port: ", cassandra_port)
+    KAFKA_ADDRESS = sys.argv[1]
+    RESULT_TOPIC = sys.argv[2]
+    CASSANDRA_HOST = sys.argv[3]
+    CASSANDRA_PORT = sys.argv[4]
+
     # Create a Spark session
     spark = SparkSession.builder \
         .appName("Spark-Cassandra-App") \
-        .config("spark.cassandra.connection.host", cassandra_host) \
-        .config("spark.cassandra.connection.port", cassandra_port) \
+        .config("spark.cassandra.connection.host", CASSANDRA_HOST) \
+        .config("spark.cassandra.connection.port", CASSANDRA_PORT) \
         .getOrCreate()
 
     spark.sparkContext.setLogLevel("ERROR")
@@ -51,8 +46,8 @@ def main():
     kafka_df = (
         spark.readStream
         .format("kafka")
-        .option("kafka.bootstrap.servers", kafka_server)
-        .option("subscribe", api_result_topic)
+        .option("kafka.bootstrap.servers", KAFKA_ADDRESS)
+        .option("subscribe", RESULT_TOPIC)
         .option("startingOffsets", "latest")
         .load()
     )
@@ -70,12 +65,13 @@ def main():
         col("station.capacity").alias("capacity"),
         from_unixtime("station.last_reported").alias("last_reported").cast(
             TimestampType()),  # Convert epoch timestamp to timestamp
+        # current_timestamp().alias("current_timestamp")  # Add a timestamp column
     )
 
     window_spec = (
         final_df \
         .withWatermark("last_reported", "1 minute") \
-        .groupBy("station_id", "city", window("last_reported", "1 minute").alias("updated_at"))
+        .groupBy("station_id", "city", window("current_timestamp", "1 minute").alias("updated_at"))
         .agg(avg("bikes").alias("bikes"),avg("capacity").alias("capacity"))
     ).withColumn(
         "updated_at",
@@ -84,7 +80,7 @@ def main():
 
     # display real time data
     query = final_df.writeStream \
-        .outputMode("update") \
+        .outputMode("append") \
         .format("console") \
         .option("truncate", "false") \
         .start()
