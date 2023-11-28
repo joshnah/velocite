@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from cassandra.cluster import Cluster
 from starlette import status
 from starlette.responses import JSONResponse
@@ -25,17 +25,15 @@ app = FastAPI()
 
 
 @app.get("/")
-def read_root():
-    return {"Hello": "World"}
+def read_root(request : Request):
+    row = session.execute(
+        "SELECT DISTINCT city FROM station.stations")
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={"cities": [{r.city: str(request.url) + r.city} for r in row]})
 
 
 # Get Cassandra cluster name and listen address
-@app.get("/cluster")
-def read_cluster():
-    row = session.execute(
-        "SELECT cluster_name, listen_address FROM system.local").one()
-    return JSONResponse(
-        status_code=status.HTTP_200_OK,
-        content={"cluster_name": row.cluster_name,
-                 "listen_address": row.listen_address},
-    )
+@app.get("/{city}/")
+def read_city(city, page,request):
+    return city, page, request.url
