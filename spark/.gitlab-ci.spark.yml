@@ -1,0 +1,19 @@
+stages:
+  - build
+
+build kafka streaming:
+  extends: .build
+  stage: build
+  variables:
+    IMAGE_NAME: $CI_REGISTRY_IMAGE/streaming
+    IMAGE_TAG: $IMAGE_NAME:$CI_COMMIT_SHORT_SHA
+    IMAGE_TAG_LATEST: $IMAGE_NAME:latest
+  script:
+    - cd spark
+    - docker build --cache-from $IMAGE_TAG_LATEST -f Dockerfile_streaming -t $IMAGE_TAG .
+    - IMAGE_ID=$(docker images | grep $IMAGE_NAME | awk '{print $3}')
+    - docker tag $IMAGE_ID $IMAGE_TAG_LATEST
+    - docker push $IMAGE_TAG_LATEST
+    - docker push $IMAGE_TAG
+  only:
+    - main
