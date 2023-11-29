@@ -1,0 +1,4 @@
+FROM spark
+USER root
+COPY . /app
+

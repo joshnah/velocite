@@ -1,0 +1,5 @@
+sdtd-spark/
+**/.env
+__pycache__
+metastore_db
+*log
