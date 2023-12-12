@@ -18,7 +18,6 @@ CREATE TABLE IF NOT EXISTS station.weather (
     PRIMARY KEY (city, forecast_date )
 );
 
-
 -- CREATE TYPE station.address (
 --   street text,
 --   city text,
