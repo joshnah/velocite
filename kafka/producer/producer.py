@@ -13,7 +13,6 @@ load_dotenv()
 
 SERVER_ADDRESS = os.getenv("SERVER_ADDRESS")
 RESULT_TOPIC = os.getenv("RESULT_TOPIC")
-TODO_CITIES_TOPIC = os.getenv("TODO_CITIES_TOPIC")
 
 list_apis = {"paris": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/velib-disponibilite-en-temps-reel/records",
            "lille": "https://opendata.lillemetropole.fr/api/explore/v2.1/catalog/datasets/vlille-realtime/records",
@@ -29,12 +28,6 @@ list_apis = {"paris": "https://opendata.paris.fr/api/explore/v2.1/catalog/datase
 producer = KafkaProducer(
     bootstrap_servers=SERVER_ADDRESS,
     value_serializer=lambda v: json.dumps(v).encode('utf-8')
-)
-
-consumer = KafkaConsumer(
-    TODO_CITIES_TOPIC,
-    bootstrap_servers=SERVER_ADDRESS,
-    group_id="producer"
 )
 
 

@@ -7,7 +7,15 @@ CREATE TABLE IF NOT EXISTS station.stations (
   bikes smallint,
   capacity smallint,
   updated_at timestamp,
-    PRIMARY KEY ((city), station_id, updated_at) );
+    PRIMARY KEY ((city, station_id), updated_at) );
+
+CREATE TABLE IF NOT EXISTS station.weather (
+  city text,
+  proba_rain smallint,
+  forecast_date timestamp,
+  updated_at timestamp,
+    PRIMARY KEY (city, forecast_date )
+);
 
 -- CREATE TYPE station.address (
 --   street text,
