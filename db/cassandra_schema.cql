@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS station.stations (
   bikes smallint,
   capacity smallint,
   updated_at timestamp,
-    PRIMARY KEY ((city), station_id, updated_at) );
+  PRIMARY KEY ((city, station_id), updated_at) );
 
 -- CREATE TYPE station.address (
 --   street text,
