@@ -1,6 +1,8 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import from_json, col, explode, from_unixtime,window,avg,date_format
+from pyspark.sql.functions import from_json, col, explode, from_unixtime, window, avg, date_format
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType, DoubleType, ArrayType, TimestampType
+import freeza
+
 import sys
 # Define the schema for the Kafka message
 schema = StructType([
@@ -20,6 +22,7 @@ schema = StructType([
     StructField("city", StringType(), True)
 ])
 
+
 def write_to_cassandra(df, epoch_id):
     print("\nWriting to Cassandra...\n")
     df.write \
@@ -28,6 +31,8 @@ def write_to_cassandra(df, epoch_id):
         .option("table", "stations") \
         .mode("append") \
         .save()
+
+
 def main():
     KAFKA_ADDRESS = sys.argv[1]
     RESULT_TOPIC = sys.argv[2]
@@ -49,6 +54,7 @@ def main():
         .option("kafka.bootstrap.servers", KAFKA_ADDRESS)
         .option("subscribe", RESULT_TOPIC)
         .option("startingOffsets", "latest")
+        .option("kafka.group.id", "spark-streaming")
         .load()
     )
     parsed_df = kafka_df.selectExpr("CAST(value AS STRING)").select(
@@ -69,10 +75,10 @@ def main():
     )
 
     window_spec = (
-        final_df \
-        .withWatermark("last_reported", "1 minute") \
+        final_df
+        .withWatermark("last_reported", "1 minute")
         .groupBy("station_id", "city", window("current_timestamp", "1 minute").alias("updated_at"))
-        .agg(avg("bikes").alias("bikes"),avg("capacity").alias("capacity"))
+        .agg(avg("bikes").alias("bikes"), avg("capacity").alias("capacity"))
     ).withColumn(
         "updated_at",
         date_format("updated_at.start", "yyyy-MM-dd HH:mm:ss")
@@ -84,6 +90,14 @@ def main():
         .format("console") \
         .option("truncate", "false") \
         .start()
+
+    # Start the commiter thread
+    tr = freeza.start_commiter_thread(
+        query=query,
+        bootstrap_servers=KAFKA_ADDRESS,
+        group_id="spark-streaming"
+    )
+    tr.is_alive()
 
     # Write to cassandra each minute the average of bikes available
     cassandra_query = window_spec.writeStream \

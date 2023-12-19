@@ -15,16 +15,16 @@ SERVER_ADDRESS = os.getenv("SERVER_ADDRESS")
 RESULT_TOPIC = os.getenv("RESULT_TOPIC")
 TODO_CITIES_TOPIC = os.getenv("TODO_CITIES_TOPIC")
 
-list_apis = {"paris": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/velib-disponibilite-en-temps-reel/records",
-           "lille": "https://opendata.lillemetropole.fr/api/explore/v2.1/catalog/datasets/vlille-realtime/records",
-           "lyon": "https://transport.data.gouv.fr/gbfs/lyon/station_information.json",
-           "strasbourg": "https://data.strasbourg.eu/api/explore/v2.1/catalog/datasets/stations-velhop/records",
-           "toulouse": "https://data.toulouse-metropole.fr/api/explore/v2.1/catalog/datasets/api-velo-toulouse-temps-reel/records",
-           "bordeaux": "https://transport.data.gouv.fr/gbfs/vcub/station_information.json",
-           "nancy": "https://transport.data.gouv.fr/gbfs/nancy/station_information.json",
-           "amiens": "https://transport.data.gouv.fr/gbfs/amiens/station_information.json",
-           "besancon": "https://transport.data.gouv.fr/gbfs/besancon/station_information.json"}
-# list_apis ={"besancon": "https://transport.data.gouv.fr/gbfs/besancon/station_information.json"}
+# list_apis = {"paris": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/velib-disponibilite-en-temps-reel/records",
+#            "lille": "https://opendata.lillemetropole.fr/api/explore/v2.1/catalog/datasets/vlille-realtime/records",
+#            "lyon": "https://transport.data.gouv.fr/gbfs/lyon/station_information.json",
+#            "strasbourg": "https://data.strasbourg.eu/api/explore/v2.1/catalog/datasets/stations-velhop/records",
+#            "toulouse": "https://data.toulouse-metropole.fr/api/explore/v2.1/catalog/datasets/api-velo-toulouse-temps-reel/records",
+#            "bordeaux": "https://transport.data.gouv.fr/gbfs/vcub/station_information.json",
+#            "nancy": "https://transport.data.gouv.fr/gbfs/nancy/station_information.json",
+#            "amiens": "https://transport.data.gouv.fr/gbfs/amiens/station_information.json",
+#            "besancon": "https://transport.data.gouv.fr/gbfs/besancon/station_information.json"}
+list_apis ={"lyon": "https://transport.data.gouv.fr/gbfs/lyon/station_information.json"}
 
 producer = KafkaProducer(
     bootstrap_servers=SERVER_ADDRESS,
