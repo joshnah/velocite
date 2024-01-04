@@ -1,5 +1,5 @@
 FROM spark
 USER root
 RUN pip install freeza-offset
-COPY . /app
+COPY streaming.py /app
 
