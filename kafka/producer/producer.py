@@ -157,28 +157,13 @@ def extract_from_gouv(city):
 
 
 if __name__ == "__main__":
-    """
-       1. Calling API 
-       2. Send the fake data to the consumer topic 
-       3. Sleep 10 seconds and repeat the process utill press Crontrol C
-    """
-    i = 1
-    while True:
-        print(f"FETCH {i}\n")
-        try:
-            for city, url in list_apis.items():
-                if (url.find(".json") == -1):
-                    print("extract from " + city + " opendata")
-                    result = extract_from_opendata(city)
-                else:
-                    print("extract from " + city + " gouv")
-                    result = extract_from_gouv(city)
-                if result != None:
-                    producer.send(RESULT_TOPIC, result)
-            producer.flush()
-        except KeyboardInterrupt:
-            print("Quit")
-            break
-        print("\nSLEEP..... \n")
-        i = i+ 1
-        time.sleep(30)
+    for city, url in list_apis.items():
+        if (url.find(".json") == -1):
+            print("extract from " + city + " opendata")
+            result = extract_from_opendata(city)
+        else:
+            print("extract from " + city + " gouv")
+            result = extract_from_gouv(city)
+        if result != None:
+            producer.send(RESULT_TOPIC, result)
+    producer.flush()
