@@ -6,30 +6,12 @@ CREATE TABLE IF NOT EXISTS station.stations (
   station_id text,
   bikes smallint,
   capacity smallint,
-  prediction smallint,
   updated_at timestamp,
     PRIMARY KEY ((city, station_id), updated_at))
   WITH CLUSTERING ORDER BY (updated_at DESC);
 
-CREATE TABLE IF NOT EXISTS station.weather (
-  city text,
-  proba_rain smallint,
-  forecast_date timestamp,
-  updated_at timestamp,
-    PRIMARY KEY (city, forecast_date)
-);
-
-CREATE TABLE IF NOT EXISTS station.daily (
-  city text,
-  station_id text,
-  updated_at timestamp,
-  avg_bikes float,
-  avg_occupancy_rate float,
-  PRIMARY KEY ((city, station_id), updated_at))
-  WITH CLUSTERING ORDER BY (updated_at DESC);
-
-
-
+ALTER TABLE station.stations ADD prediction smallint;
+ALTER TABLE station.stations ADD proba_rain smallint;
 -- CREATE TYPE station.address (
 --   street text,
 --   city text,
