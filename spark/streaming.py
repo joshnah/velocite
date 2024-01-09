@@ -4,8 +4,6 @@ from pyspark.sql.types import StructType, StructField, StringType, IntegerType, 
 import freeza
 
 import sys
-from pyspark.sql.functions import to_json
-from pyspark.sql.functions import struct
 # Define the schema for the Kafka message
 schema = StructType([
     StructField("stations", ArrayType(StructType([
@@ -86,21 +84,11 @@ def main():
         date_format("updated_at.start", "yyyy-MM-dd HH:mm:ss")
     )
 
-    final_df.printSchema()
-
     # display real time data
     query = final_df.writeStream \
         .outputMode("append") \
         .format("console") \
         .option("truncate", "false") \
-        .start()
-
-    final_df.selectExpr("CAST(city AS STRING) as key", "to_json(struct(*)) AS value") \
-        .writeStream \
-        .format("kafka") \
-        .option("kafka.bootstrap.servers", KAFKA_ADDRESS) \
-        .option("topic", "streaming_result") \
-        .option("checkpointLocation", "/tmp/checkpoint") \
         .start()
 
     # Start the commiter thread
