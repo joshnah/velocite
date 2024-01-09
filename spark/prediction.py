@@ -54,9 +54,9 @@ def main():
     # Calculer la différence de vélos entre chaque heure
     diff_bikes = sorted_stations.withColumn("diff_bikes", F.col("bikes") - F.lag("bikes").over(window_spec))
 
-    # Calculer la moyenne pondérée par la probabilité de pluie
+    # Calculer la moyenne
     avg_diff_bikes = diff_bikes.groupBy("city", "station_id", F.hour("updated_at").alias("hour")) \
-        .agg(F.avg(F.when(F.col("proba_rain").isNotNull(), F.col("diff_bikes") * F.col("proba_rain")).otherwise(F.col("diff_bikes"))).alias("avg_diff_bikes"))
+        .agg(F.avg(F.when(F.col("proba_rain").isNotNull(), F.col("diff_bikes")).otherwise(F.col("diff_bikes"))).alias("avg_diff_bikes"))
     avg_diff_bikes.show()
     # Joindre les données de probabilité future de pluie
     final_data = avg_diff_bikes.join(
@@ -67,16 +67,19 @@ def main():
 
     # Utiliser la colonne avg_diff_bikes pour le calcul de la prédiction
     final_data = final_data.withColumn("prediction",
-        F.when(F.col("proba_rain").isNotNull(), F.col("bikes") + F.col("avg_diff_bikes") * F.col("proba_rain")).otherwise(F.col("bikes"))
+        F.when(F.col("proba_rain").isNotNull(), F.col("avg_diff_bikes") * (100-F.col("proba_rain"))/100).otherwise(F.col("bikes"))
     )
+    final_data = final_data.join(df_stations.select("city", "station_id", "updated_at",F.hour("updated_at").alias("hour"), "bikes", "capacity").filter(F.col("bikes").isNull()), on=["city", "station_id", "hour"], how="left_outer").filter(F.col("updated_at").isNotNull())
+    final_data.show()
+    # update rows where station_id is the same, city is the same hour (int) is the same hour of updated_at
+    final_data.select("city","station_id","updated_at","prediction").write \
+        .format("org.apache.spark.sql.cassandra") \
+        .options(table="stations", keyspace="station") \
+        .mode("append") \
+        .save()
+    # Apply updates from the temporary table to the main table
 
-    # Respecter les contraintes de capacité
-    capped_prediction = final_data.selectExpr(
-        "*",
-        "LEAST(GREATEST(prediction, 0), capacity) as capped_prediction"
-    )
-    # Afficher le résultat
-    capped_prediction.show()
+
 #     df_stations_null = df_stations.filter(df_stations.bikes.isNull())
 #     # filter rows where bikes is null
 #     df_stations = df_stations.filter(df_stations.bikes.isNotNull())
