@@ -72,9 +72,10 @@ def main():
     final_data = final_data.join(df_stations.select("city", "station_id", "updated_at",F.hour("updated_at").alias("hour"), "bikes", "capacity").filter(F.col("bikes").isNull()), on=["city", "station_id", "hour"], how="left_outer").filter(F.col("updated_at").isNotNull())
     final_data.show()
     # update rows where station_id is the same, city is the same hour (int) is the same hour of updated_at
+    spark.cql("TRUNCATE station.predictions")
     final_data.select("city","station_id","updated_at","prediction").write \
         .format("org.apache.spark.sql.cassandra") \
-        .options(table="stations", keyspace="station") \
+        .options(table="predictions", keyspace="station") \
         .mode("append") \
         .save()
     # Apply updates from the temporary table to the main table

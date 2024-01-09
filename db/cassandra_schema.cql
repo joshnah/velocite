@@ -12,6 +12,14 @@ CREATE TABLE IF NOT EXISTS station.stations (
 
 ALTER TABLE station.stations ADD prediction smallint;
 ALTER TABLE station.stations ADD proba_rain smallint;
+
+CREATE TABLE IF NOT EXISTS station.predictions (
+  city text,
+  station_id text,
+  updated_at timestamp,
+  prediction smallint,
+    PRIMARY KEY ((city, station_id), updated_at))
+  WITH CLUSTERING ORDER BY (updated_at DESC);
 -- CREATE TYPE station.address (
 --   street text,
 --   city text,
