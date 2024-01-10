@@ -46,9 +46,9 @@ spec:
   restartPolicy:
     type: OnFailure
     onFailureRetries: 5
-    onFailureRetryInterval: 20
+    onFailureRetryInterval: 10
     onSubmissionFailureRetries: 5
-    onSubmissionFailureRetryInterval: 20
+    onSubmissionFailureRetryInterval: 10
   driver:
     coreRequest: "100m"
     memory: "512m"
@@ -58,7 +58,7 @@ spec:
 
   executor:
     coreRequest: "100m"
-    instances: 1
+    instances: 2
     memory: "512m"
     labels:
       version: 3.5.0

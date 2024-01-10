@@ -19,7 +19,7 @@
 apiVersion: "sparkoperator.k8s.io/v1beta2"
 kind: SparkApplication
 metadata:
-  name: daily-batch
+  name: prediction
   namespace: messaging
 spec:
   type: Python
@@ -29,7 +29,7 @@ spec:
   imagePullPolicy: Always
   imagePullSecrets:
     - registry-credentials
-  mainApplicationFile: local:///app/daily_batch.py
+  mainApplicationFile: local:///app/weather_prediction.py
   sparkVersion: "3.5.0"
   sparkConf:
     spark.driver.extraJavaOptions: "-Divy.cache.dir=/tmp -Divy.home=/tmp -Dbasicauth=username:password"

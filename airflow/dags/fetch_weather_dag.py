@@ -30,11 +30,11 @@ from datetime import timedelta
 # [START import_module]
 # The DAG object; we'll need this to instantiate a DAG
 from airflow import DAG
-from airflow.operators.python_operator import PythonOperator 
 from datetime import timedelta 
 from airflow.utils.dates import days_ago
 from kubernetes.client import models as k8s_models
-
+from airflow.providers.cncf.kubernetes.operators.spark_kubernetes import SparkKubernetesOperator
+from airflow.providers.cncf.kubernetes.sensors.spark_kubernetes import SparkKubernetesSensor
 # [END import_module]
 
 # [START default_args]
@@ -49,25 +49,25 @@ default_args = {
     'email_on_retry': False,
     'max_active_runs': 1,
     'retries': 2,
-    'retry_delay': timedelta(seconds=30),
+    'retry_delay': timedelta(seconds=10),
     'catchup': False,
 
 }
 
 dag = DAG(
-    'fetch_stations',
+    'fetch_weather',
     default_args=default_args,
-    schedule_interval=timedelta(minutes=2),
+    schedule_interval=timedelta(hours=12),
     tags=['fetch'],
     concurrency=1,
     catchup=False
 )
 
-submit = KubernetesPodOperator(
+fetch = KubernetesPodOperator(
     image="registry.gitlab.com/viviane.qian/projet-sdtd/producer:test",
     namespace="messaging",
-    name="fetch_stations",
-    task_id="fetch_stations",
+    name="fetch_weather",
+    task_id="fetch_weather",
     image_pull_policy="Always",
     image_pull_secrets=[k8s.V1LocalObjectReference('registry-credentials')],
     dag=dag,
@@ -78,8 +78,31 @@ submit = KubernetesPodOperator(
     container_resources=k8s_models.V1ResourceRequirements(
             limits={"memory": "250M", "cpu": "100m"},
         ),
-    cmds=["python", "fetch_stations.py"]
+    cmds=["python", "fetch_weather.py"]
 
 )
 
-submit
+prediction = SparkKubernetesOperator(
+    task_id='weather_prediction',
+    namespace="messaging",
+    application_file="weather_prediction.yaml",
+    kubernetes_conn_id="k8s",
+    do_xcom_push=True,
+    dag=dag,
+    api_group="sparkoperator.k8s.io",
+    api_version="v1beta2",
+    watch=True,
+)
+
+sensor = SparkKubernetesSensor(
+    task_id='weather_prediction_sensor',
+    namespace="messaging",
+    application_name="{{ task_instance.xcom_pull(task_ids='weather_prediction')['metadata']['name'] }}",
+    kubernetes_conn_id="k8s",
+    dag=dag,
+    api_group="sparkoperator.k8s.io",
+    attach_log=True
+)
+
+
+fetch >> prediction >> sensor
