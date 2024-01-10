@@ -64,7 +64,7 @@ dag = DAG(
 )
 
 submit = KubernetesPodOperator(
-    image="registry.gitlab.com/viviane.qian/projet-sdtd/producer:test",
+    image="registry.gitlab.com/viviane.qian/projet-sdtd/producer:latest",
     namespace="messaging",
     name="fetch_stations",
     task_id="fetch_stations",
