@@ -64,7 +64,7 @@ dag = DAG(
 )
 
 fetch = KubernetesPodOperator(
-    image="registry.gitlab.com/viviane.qian/projet-sdtd/producer:test",
+    image="registry.gitlab.com/viviane.qian/projet-sdtd/producer",
     namespace="messaging",
     name="fetch_weather",
     task_id="fetch_weather",
