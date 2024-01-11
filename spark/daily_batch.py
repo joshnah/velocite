@@ -17,7 +17,7 @@ if __name__ == "__main__":
 
     # requete distribuee spark cassandra
     spark = SparkSession.builder\
-            .appName("DailyBatch") \
+            .appName("DailyBatch-App") \
             .config("spark.cassandra.connection.host", CASSANDRA_ADDRESS)\
             .config("spark.cassandra.connection.port", CASSANDRA_PORT)\
             .getOrCreate()
