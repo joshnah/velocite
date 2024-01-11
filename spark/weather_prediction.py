@@ -38,7 +38,7 @@ def main():
 
     # Create a Spark session
     spark = SparkSession.builder \
-        .appName("Spark-Cassandra-App") \
+        .appName("Weather-Prediction-App") \
         .config("spark.cassandra.connection.host", CASSANDRA_HOST) \
         .config("spark.cassandra.connection.port", CASSANDRA_PORT) \
         .getOrCreate()
