@@ -94,14 +94,6 @@ def main():
         .option("truncate", "false") \
         .start()
 
-    final_df.selectExpr("CAST(city AS STRING) as key", "to_json(struct(*)) AS value") \
-        .writeStream \
-        .format("kafka") \
-        .option("kafka.bootstrap.servers", KAFKA_ADDRESS) \
-        .option("topic", "streaming_result") \
-        .option("checkpointLocation", "/tmp/checkpoint") \
-        .start()
-
     # Start the commiter thread
     tr = freeza.start_commiter_thread(
         query=query,
