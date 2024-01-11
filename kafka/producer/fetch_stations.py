@@ -23,7 +23,9 @@ RESULT_TOPIC = os.getenv("RESULT_TOPIC")
 #            "amiens": "https://transport.data.gouv.fr/gbfs/amiens/station_information.json",
 #            "besancon": "https://transport.data.gouv.fr/gbfs/besancon/station_information.json"}
 list_apis = {
-    "lyon": "https://transport.data.gouv.fr/gbfs/lyon/station_information.json"}
+    "lyon": "https://transport.data.gouv.fr/gbfs/lyon/station_information.json",
+    "besancon": "https://transport.data.gouv.fr/gbfs/besancon/station_information.json"}
+
 
 producer = KafkaProducer(
     bootstrap_servers=SERVER_ADDRESS,
