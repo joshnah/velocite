@@ -57,9 +57,9 @@ spec:
     serviceAccount: spark
 
   executor:
-    coreRequest: "80m"
+    coreRequest: "100m"
     instances: 2
-    memory: "256m"
+    memory: "512m"
     labels:
       version: 3.5.0
     
