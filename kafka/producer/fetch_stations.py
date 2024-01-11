@@ -160,5 +160,5 @@ if __name__ == "__main__":
             print("extract from " + city + " gouv")
             result = extract_from_gouv(city)
         if result != None:
-            producer.send(RESULT_TOPIC, result)
+            producer.send(RESULT_TOPIC, result, key=city.encode('utf-8'))
     producer.flush()
