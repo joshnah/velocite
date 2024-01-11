@@ -76,7 +76,7 @@ submit = KubernetesPodOperator(
     in_cluster=True,
     on_finish_action='delete_pod',
     container_resources=k8s_models.V1ResourceRequirements(
-            limits={"memory": "250M", "cpu": "100m"},
+            limits={"memory": "150M", "cpu": "100m"},
         ),
     cmds=["python", "fetch_stations.py"]
 
