@@ -30,7 +30,7 @@ from datetime import timedelta
 # [START import_module]
 # The DAG object; we'll need this to instantiate a DAG
 from airflow import DAG
-from datetime import timedelta 
+from datetime import timedelta, datetime
 from airflow.utils.dates import days_ago
 from kubernetes.client import models as k8s_models
 from airflow.providers.cncf.kubernetes.operators.spark_kubernetes import SparkKubernetesOperator
@@ -43,7 +43,7 @@ from airflow.providers.cncf.kubernetes.sensors.spark_kubernetes import SparkKube
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
-    'start_date': days_ago(1),
+    'start_date': datetime.today() + timedelta(days=1), 
     'email': ['airflow@example.com'],
     'email_on_failure': False,
     'email_on_retry': False,
