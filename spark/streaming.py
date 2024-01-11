@@ -78,8 +78,7 @@ def main():
 
     window_spec = (
         final_df
-        .withWatermark("last_reported", "1 minute")
-        .groupBy("station_id", "city", window("current_timestamp", "1 minute").alias("updated_at"))
+        .groupBy("station_id", "city", window("current_timestamp", "1 hour").alias("updated_at"))
         .agg(avg("bikes").alias("bikes"), avg("capacity").alias("capacity"))
     ).withColumn(
         "updated_at",
@@ -115,7 +114,7 @@ def main():
     cassandra_query = window_spec.writeStream \
         .outputMode("complete") \
         .foreachBatch(write_to_cassandra) \
-        .trigger(processingTime="1 minute") \
+        .trigger(processingTime="1 minutes") \
         .start() \
         .awaitTermination()
 

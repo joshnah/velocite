@@ -26,7 +26,9 @@ https://github.com/GoogleCloudPlatform/spark-on-k8s-operator
 """
 from kubernetes.client import models as k8s
 from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
-from datetime import timedelta
+from datetime import timedelta, datetime
+from airflow.utils.dates import days_ago
+
 # [START import_module]
 # The DAG object; we'll need this to instantiate a DAG
 from airflow import DAG
@@ -43,7 +45,7 @@ from airflow.providers.cncf.kubernetes.sensors.spark_kubernetes import SparkKube
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
-    'start_date': datetime.today() + timedelta(days=1), 
+    'start_date': days_ago(1),
     'email': ['airflow@example.com'],
     'email_on_failure': False,
     'email_on_retry': False,

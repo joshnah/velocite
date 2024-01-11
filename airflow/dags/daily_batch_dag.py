@@ -34,6 +34,7 @@ from airflow.providers.cncf.kubernetes.operators.spark_kubernetes import SparkKu
 from airflow.providers.cncf.kubernetes.sensors.spark_kubernetes import SparkKubernetesSensor
 from airflow.providers.cncf.kubernetes.hooks.kubernetes import KubernetesHook
 from datetime import datetime, timedelta
+from airflow.utils.dates import days_ago
 
 
 # [END import_module]
@@ -57,7 +58,7 @@ default_args = {
 dag = DAG(
     'daily_batch_dag',
     default_args=default_args,
-    start_date=datetime.today() + timedelta(days=1),
+    start_date=days_ago(1),
     schedule_interval='0 1 * * *', # 1:00 AM daily
     catchup=False,
     tags=['batch']
