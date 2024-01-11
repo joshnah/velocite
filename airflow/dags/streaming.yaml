@@ -39,7 +39,7 @@ spec:
         - org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0
         - com.datastax.spark:spark-cassandra-connector_2.12:3.4.1
   arguments:
-    - my-cluster-kafka-bootstrap:9092
+    - kafka-service:9092
     - api-result
     - cassandra-service.database.svc.cluster.local
     - "9042"
