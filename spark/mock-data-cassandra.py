@@ -1,6 +1,7 @@
 from cassandra.cluster import Cluster
 from datetime import datetime, timedelta
 import requests
+import random
 
 # get the list of station from the api
 url = "https://transport.data.gouv.fr/gbfs/lyon/station_information.json"
@@ -30,7 +31,7 @@ def insert_mock_data(session, station_ids, start_date, end_date):
                 "city": "lyon",
                 "station_id": station_id,
                 "updated_at": current_date,
-                "bikes": 5,  # You can adjust these values as needed
+                "bikes": random.randint(0, 20),
                 "capacity": 20  # You can adjust these values as needed
             }
             insert_data(session, mock_data)
@@ -41,8 +42,8 @@ if __name__ == "__main__":
     session = create_session()
 
     file_path = "station_id.txt"
-    start_date = datetime(2023, 12, 2, 0, 0, 0)
-    end_date = datetime(2023, 12, 9, 23, 59, 59)
+    start_date = datetime.now() - timedelta(days=3)
+    end_date = datetime.now() - timedelta(days=1)
 
     station_ids = get_station_list(url)
     insert_mock_data(session, station_ids, start_date, end_date)
