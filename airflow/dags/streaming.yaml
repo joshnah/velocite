@@ -25,7 +25,7 @@ spec:
   type: Python
   pythonVersion: "3"
   mode: cluster
-  image: registry.gitlab.com/viviane.qian/projet-sdtd/streaming
+  image: registry.gitlab.com/viviane.qian/projet-sdtd/spark
   imagePullPolicy: Always
   imagePullSecrets:
     - registry-credentials
@@ -38,7 +38,7 @@ spec:
     packages:
         - org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0
         - com.datastax.spark:spark-cassandra-connector_2.12:3.4.1
-        - com.github.jnr:jnr-posix:3.1.15
+        # - com.github.jnr:jnr-posix:3.1.15
   arguments:
     - kafka-service:9092
     - api-result

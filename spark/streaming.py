@@ -1,11 +1,9 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import from_json, col, explode, from_unixtime, window, avg, date_format
+from pyspark.sql.functions import from_json, col, explode, from_unixtime, window, avg, date_format, last
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType, DoubleType, ArrayType, TimestampType
 import freeza
 
 import sys
-from pyspark.sql.functions import to_json
-from pyspark.sql.functions import struct
 # Define the schema for the Kafka message
 schema = StructType([
     StructField("stations", ArrayType(StructType([
@@ -33,7 +31,15 @@ def write_to_cassandra(df, epoch_id):
         .option("table", "stations") \
         .mode("append") \
         .save()
-
+    
+def write_to_cassandra_realtime(df, epoch_id):
+    print("\nWriting to Cassandra...\n")
+    df.write \
+        .format("org.apache.spark.sql.cassandra") \
+        .option("keyspace", "station") \
+        .option("table", "realtime") \
+        .mode("overwrite").option("confirm.truncate","true") \
+        .save()
 
 def main():
     KAFKA_ADDRESS = sys.argv[1]
@@ -78,14 +84,23 @@ def main():
 
     window_spec = (
         final_df
-        .groupBy("station_id", "city", window("current_timestamp", "1 hour").alias("updated_at"))
+        .groupBy("station_id", "city", window("last_reported", "1 hour").alias("updated_at"))
         .agg(avg("bikes").alias("bikes"), avg("capacity").alias("capacity"))
     ).withColumn(
         "updated_at",
         date_format("updated_at.start", "yyyy-MM-dd HH:mm:ss")
     )
 
-    final_df.printSchema()
+    realtime_df = (
+        final_df.groupBy("station_id", "city").agg(last("last_reported").alias("updated_at"), last("bikes").alias("bikes"), last("capacity").alias("capacity"))
+    )
+
+    realtime_df.writeStream \
+        .outputMode("complete") \
+        .foreachBatch(write_to_cassandra_realtime) \
+        .trigger(processingTime="2 minutes") \
+        .start() \
+        .awaitTermination()
 
     # display real time data
     query = final_df.writeStream \
@@ -106,7 +121,7 @@ def main():
     cassandra_query = window_spec.writeStream \
         .outputMode("complete") \
         .foreachBatch(write_to_cassandra) \
-        .trigger(processingTime="1 minutes") \
+        .trigger(processingTime="5 minutes") \
         .start() \
         .awaitTermination()
 
