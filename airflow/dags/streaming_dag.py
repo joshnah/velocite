@@ -51,6 +51,7 @@ default_args = {
     'email_on_retry': False,
     'max_active_runs': 1,
     'retries': 3,
+    'retry_delay': timedelta(seconds=10),
     'schedule_interval': None,
 }
 # [END default_args]
