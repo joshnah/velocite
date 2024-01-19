@@ -50,7 +50,7 @@ default_args = {
     'email_on_failure': False,
     'email_on_retry': False,
     'max_active_runs': 1,
-    'retries': 0,
+    'retries': 3,
     'schedule_interval': None,
 }
 # [END default_args]

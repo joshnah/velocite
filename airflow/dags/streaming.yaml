@@ -25,7 +25,7 @@ spec:
   type: Python
   pythonVersion: "3"
   mode: cluster
-  image: registry.gitlab.com/viviane.qian/projet-sdtd/spark
+  image: registry.gitlab.com/viviane.qian/projet-sdtd/streaming
   imagePullPolicy: Always
   imagePullSecrets:
     - registry-credentials
@@ -38,6 +38,7 @@ spec:
     packages:
         - org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0
         - com.datastax.spark:spark-cassandra-connector_2.12:3.4.1
+        - com.github.jnr:jnr-posix:3.1.15
   arguments:
     - kafka-service:9092
     - api-result
@@ -46,22 +47,26 @@ spec:
   restartPolicy:
     type: OnFailure
     onFailureRetries: 5
-    onFailureRetryInterval: 10
+    onFailureRetryInterval: 20
     onSubmissionFailureRetries: 5
-    onSubmissionFailureRetryInterval: 10
+    onSubmissionFailureRetryInterval: 20
   driver:
-    coreRequest: "100m"
-    memory: "512m"
+    coreRequest: "300m"
+    coreLimit: "600m"
+    memory: "1Gi"
     labels:
       version: 3.5.0
     serviceAccount: spark
-
   executor:
-    coreRequest: "100m"
+    coreRequest: "400m"
+    coreLimit: "700m"
     instances: 1
-    memory: "512m"
+    memory: "1Gi"
     labels:
       version: 3.5.0
   monitoring:
     exposeDriverMetrics: true
     exposeExecutorMetrics: true
+    
+    
+  
