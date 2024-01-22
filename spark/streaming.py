@@ -100,7 +100,6 @@ def main():
         .foreachBatch(write_to_cassandra_realtime) \
         .trigger(processingTime="2 minutes") \
         .start() \
-        .awaitTermination()
 
     # display real time data
     query = final_df.writeStream \
