@@ -120,7 +120,7 @@ def main():
     cassandra_query = window_spec.writeStream \
         .outputMode("complete") \
         .foreachBatch(write_to_cassandra) \
-        .trigger(processingTime="5 minutes") \
+        .trigger(processingTime="2 minutes") \
         .start() \
         .awaitTermination()
 
