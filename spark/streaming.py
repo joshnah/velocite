@@ -24,7 +24,7 @@ schema = StructType([
 
 
 def write_to_cassandra(df, epoch_id):
-    print("\nWriting to Cassandra...\n")
+    print("\nWriting to stations...\n")
     df.write \
         .format("org.apache.spark.sql.cassandra") \
         .option("keyspace", "station") \
@@ -33,7 +33,7 @@ def write_to_cassandra(df, epoch_id):
         .save()
     
 def write_to_cassandra_realtime(df, epoch_id):
-    print("\nWriting to Cassandra...\n")
+    print("\nWriting to realtime..\n")
     df.write \
         .format("org.apache.spark.sql.cassandra") \
         .option("keyspace", "station") \
@@ -98,7 +98,7 @@ def main():
     realtime_df.writeStream \
         .outputMode("complete") \
         .foreachBatch(write_to_cassandra_realtime) \
-        .trigger(processingTime="2 minutes") \
+        .trigger(processingTime="7 minutes") \
         .start() \
 
     # display real time data
@@ -120,7 +120,7 @@ def main():
     cassandra_query = window_spec.writeStream \
         .outputMode("complete") \
         .foreachBatch(write_to_cassandra) \
-        .trigger(processingTime="2 minutes") \
+        .trigger(processingTime="10 minutes") \
         .start() \
         .awaitTermination()
 
