@@ -1,0 +1,36 @@
+# steps:
+#   # Configurer la région pour créer le cluster
+#   - name: 'gcr.io/cloud-builders/gcloud'
+#     args: ['config', 'set', 'compute/zone', 'europe-west6-a']
+
+# # steps:
+# #   # Création du cluster
+# #   - name: 'gcr.io/cloud-builders/gcloud'
+# #     args: ['container', 'clusters', 'create', 'sdtd-cluster']
+
+steps:
+
+  # Utilisation du cluster créé dans kubectl
+  - name: 'gcr.io/cloud-builders/kubectl'
+    args: ['config', 'set-context', 'sdtd-402908_europe-west6-a_sdtd-cluster']
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=europe-west6-a'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=sdtd-cluster'
+
+  # Cloner projet-sdtd-k8s
+  - name: 'gcr.io/cloud-builders/git'
+    args:
+      - 'clone'
+      - 'https://LouisJeudy:glpat-wb2C9Foaa6igyuoudgBc@gitlab.com/phanti/projet-sdtd-k8s.git'
+      - 'projet-sdtd-k8s'
+
+  # Exécuter le script shell de déploiement des ressources
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    # Se placer dans le répertoire du projet
+    dir: './projet-sdtd-k8s'
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=europe-west6-a'
+    # Exécuter le script
+    args:
+      - './deploy.sh'
