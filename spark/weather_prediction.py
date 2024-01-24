@@ -63,10 +63,10 @@ def main():
     result_df = df_weather.join(df_stations, on="city", how="inner")
 
 
-    # Simple prediction: if proba_rain > 50, then we predict half the number of bikes
+    # Simple prediction: if proba_rain < 50, then we predict half the number of bikes
     result_df = result_df.withColumn(
         "prediction",
-        F.when(F.col("proba_rain") > 50, F.col("avg(bikes)") * 0.5).otherwise(F.col("avg(bikes)"))
+        F.when(F.col("proba_rain") < 50, F.col("avg(bikes)") * 0.5).otherwise(F.col("avg(bikes)"))
     )
 
     result_df = result_df.drop("avg(bikes)")
