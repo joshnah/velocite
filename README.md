@@ -1,7 +1,7 @@
 # Projet SDTD - Dépôt applicatif
 Ce dépôt contiene le code source de l'application de démonstration du projet SDTD.
 
-Lien du dépôt de déploiment: https://gitlab.com/phanti/projet-sdtd-k8s
+Lien du dépôt de déploiment: https://github.com/joshnah/velocite-deployment
 - airflow/dags/ : les DAGs de l'application. Le git-sync de airflow est configuré pour récupérer les DAGs de ce dépôt automatiquement.
 - kafka/producer/: Python programme pour la récupération des données
 - spark/: les programmes Spark
